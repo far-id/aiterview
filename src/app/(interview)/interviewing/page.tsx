@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useEffect, useRef, useState } from 'react';
 
-export default function Page() {
+export default function Voice() {
 	const [text, setText] = useState<string>('');
 	const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
 	const [language, setLanguage] = useState<string>('id-ID');
@@ -32,7 +32,7 @@ export default function Page() {
 		newRecognition.continuous = true;
 		newRecognition.lang = language;
 
-		newRecognition.onresult = (e) => {
+		newRecognition.onresult = (e: SpeechRecognitionEvent) => {
 			const current = e.resultIndex;
 			const transcript = e.results[current][0].transcript;
 			setText((prevText) => prevText + '. ' + transcript);
@@ -85,9 +85,7 @@ export default function Page() {
 			<Card className='p-3'>
 				<CardHeader>
 					<CardTitle>Voice Recorder</CardTitle>
-					<Toggle onClick={toggleLanguage} disabled={recognition != null}>
-						{language}
-					</Toggle>
+					{language}
 					<div className='text-6xl font-bold text-gray-800 dark:text-gray-200 mb-8 text-center'>
 						{formatTime(duration)}
 					</div>
