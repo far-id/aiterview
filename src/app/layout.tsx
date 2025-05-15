@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import './globals.css';
 import { ThemeProvider } from 'next-themes';
+import { Toaster } from '@/components/ui/sonner';
 
 const geistSans = localFont({
 	src: './fonts/GeistVF.woff',
@@ -26,9 +27,13 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang='en' suppressHydrationWarning={true}>
-			<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+			<body className={`${geistSans.variable} ${geistMono.variable} antialiased w-full`}>
 				<ThemeProvider attribute='class' defaultTheme='dark' enableSystem disableTransitionOnChange>
-					{children}
+					<main className='min-h-screen'>{children}</main>
+					<Toaster richColors />
+					{/* <div className='absolute right-0 bottom-0 border p-3 bg-white sm:bg-gray-300 md:bg-gray-600 lg:bg-gray-900 xl:bg-red-200 2xl:bg-red-900'>
+						Screen
+					</div> */}
 				</ThemeProvider>
 			</body>
 		</html>

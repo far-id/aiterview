@@ -1,42 +1,48 @@
 {
-  "name": "aiterview",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "@genkit-ai/googleai": "^0.9.12",
-    "@hookform/resolvers": "^3.9.1",
-    "@radix-ui/react-dropdown-menu": "^2.1.2",
-    "@radix-ui/react-icons": "^1.3.2",
-    "@radix-ui/react-label": "^2.1.0",
-    "@radix-ui/react-separator": "^1.1.0",
-    "@radix-ui/react-slot": "^1.1.0",
-    "@radix-ui/react-tooltip": "^1.1.4",
-    "@types/dom-speech-recognition": "^0.0.4",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "genkit": "^0.9.12",
-    "lucide-react": "^0.468.0",
-    "next": "15.1.0",
-    "next-themes": "^0.4.4",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "react-hook-form": "^7.54.0",
-    "tailwind-merge": "^2.5.5",
-    "tailwindcss-animate": "^1.0.7",
-    "zod": "^3.24.1"
-  },
-  "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "postcss": "^8",
-    "tailwindcss": "^3.4.1",
-    "typescript": "^5"
-  }
+	"name": "aiterview",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"dev": "next dev --turbopack",
+		"build": "next build",
+		"start": "next start",
+		"lint": "next lint"
+	},
+	"dependencies": {
+		"@google/genai": "^0.7.0",
+		"@hookform/resolvers": "^3.9.1",
+		"@radix-ui/react-dropdown-menu": "^2.1.2",
+		"@radix-ui/react-icons": "^1.3.2",
+		"@radix-ui/react-label": "^2.1.0",
+		"@radix-ui/react-popover": "^1.1.7",
+		"@radix-ui/react-progress": "^1.1.2",
+		"@radix-ui/react-separator": "^1.1.2",
+		"@radix-ui/react-slot": "^1.1.0",
+		"@radix-ui/react-tooltip": "^1.1.4",
+		"@types/dom-speech-recognition": "^0.0.4",
+		"class-variance-authority": "^0.7.1",
+		"clsx": "^2.1.1",
+		"lucide-react": "^0.468.0",
+		"next": "15.1.0",
+		"next-themes": "^0.4.6",
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0",
+		"react-hook-form": "^7.54.0",
+		"sonner": "^2.0.3",
+		"tailwind-merge": "^2.5.5",
+		"tailwindcss-animate": "^1.0.7",
+		"tailwindcss-animated": "^2.0.0",
+		"zod": "^3.24.1",
+		"zustand": "^5.0.3"
+	},
+	"devDependencies": {
+		"@tailwindcss/postcss": "^4.0.15",
+		"@types/node": "^20",
+		"@types/react": "^19",
+		"@types/react-dom": "^19",
+		"postcss": "^8",
+		"tailwindcss": "^4.0.15",
+		"tsx": "^4.19.3",
+		"typescript": "^5"
+	}
 }

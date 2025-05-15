@@ -1,12 +1,23 @@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@radix-ui/react-tooltip';
+import clsx from 'clsx';
 import React from 'react';
 
-export const JobPlatform = ({ name, image, url }: { name: string; image: string; url: string }) => {
+const JobPlatform = ({
+	name,
+	image,
+	url,
+	bg = 'bg-white',
+}: {
+	name: string;
+	image: string;
+	url: string;
+	bg?: string;
+}) => {
 	return (
 		<TooltipProvider delayDuration={0}>
 			<Tooltip>
-				<TooltipTrigger className='bg-white border rounded-lg p-2 flex items-center justify-center'>
-					<a href={url} target='_blank' rel='noopener noreferrer'>
+				<TooltipTrigger className={clsx('border rounded-lg flex items-center justify-center', bg)}>
+					<a href={url} target='_blank' rel='noopener noreferrer' className='p-2'>
 						<img src={`job-platform/` + image} alt='job-platform' className='h-12' />
 					</a>
 				</TooltipTrigger>
@@ -17,3 +28,5 @@ export const JobPlatform = ({ name, image, url }: { name: string; image: string;
 		</TooltipProvider>
 	);
 };
+
+export default JobPlatform;
