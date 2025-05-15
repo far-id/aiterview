@@ -12,46 +12,12 @@ import { useState } from 'react';
 // import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 // import { useToast } from '@/hooks/use-toast';
 
-interface FeedbackItem {
-	type: 'positive' | 'negative' | 'improvement';
-	text: string;
-}
 
 const dummyQuestion = {
 	text: 'What is your greatest strength?',
 	category: 'behavioral',
 	difficulty: 'easy',
 	tips: 'Be honest and specific.',
-};
-
-const generateMockFeedback = (): FeedbackItem[] => {
-	const feedback = [
-		{
-			type: 'positive' as const,
-			text: 'You provided a clear, structured answer with relevant examples.',
-		},
-		{
-			type: 'positive' as const,
-			text: 'Your response demonstrated good communication skills and clarity of thought.',
-		},
-		{
-			type: 'improvement' as const,
-			text: 'Consider quantifying your achievements with specific metrics when possible.',
-		},
-		{
-			type: 'improvement' as const,
-			text: 'Try to be more concise while still fully addressing the question.',
-		},
-		{
-			type: 'negative' as const,
-			text: 'Your answer could benefit from more specific examples rather than general statements.',
-		},
-	];
-
-	// Randomly select 3-4 feedback items
-	const numberOfItems = Math.floor(Math.random() * 2) + 3;
-	const shuffled = [...feedback].sort(() => 0.5 - Math.random());
-	return shuffled.slice(0, numberOfItems);
 };
 
 export default function Summary() {
@@ -101,7 +67,7 @@ export default function Summary() {
 
 					<div className='p-6'>
 						{/* {currentQuestion && <QuestionCard question={currentQuestion} />} */}
-						<QuestionCard question={dummyQuestion} />
+						{/* <QuestionCard question={dummyQuestion} /> */}
 
 						<Card className='mb-6 bg-gray-50 dark:bg-gray-800 '>
 							<CardHeader className='flex flex-row items-center justify-between py-3'>
