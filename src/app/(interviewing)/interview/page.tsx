@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import useConversation from '@/hooks/useConversation';
+import { Conversation } from '@/interfaces/conversations';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ChevronRight, Home, Hourglass, TimerReset } from 'lucide-react';
 import Link from 'next/link';
@@ -23,11 +24,17 @@ const aswerSchema = z.object({
 });
 
 export default function Page() {
-	const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(1);
+	const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(1); //todo: manipulate conversation format that include question number. because if using state, they will be out of sync
 	const [onRecording, setOnRecording] = useState(false);
 	const [timeLeft, setTimeLeft] = useState(120); // in seconds
 	const [progressPercentage, setprogressPercentage] = useState(100);
-	const { conversation, addMessage } = useConversation();
+	const { conversation, addMessage, lastConversation } = useConversation();
+
+	const [interviewQuestion, setInterviewQuestion] = useState<Conversation>();
+
+	useEffect(() => {
+		setInterviewQuestion(lastConversation);
+	}, [interviewQuestion, lastConversation]);
 
 	const form = useForm<z.infer<typeof aswerSchema>>({
 		resolver: zodResolver(aswerSchema),
@@ -94,6 +101,12 @@ export default function Page() {
 							const { message } = data;
 
 							addMessage({
+								role: 'model',
+								message: message.pertanyaan,
+								category: message.kategori,
+								tips: message.tips,
+							});
+							setInterviewQuestion({
 								role: 'model',
 								message: message.pertanyaan,
 								category: message.kategori,
@@ -174,7 +187,7 @@ export default function Page() {
 						<Progress value={progressPercentage} className='h-2 bg-gray-900' />
 					</div>
 				</div>
-				<QuestionCard />
+				<QuestionCard question={interviewQuestion} />
 				<Card className='mb-6 border-l-4 border-l-blue-500 dark:border-l-blue-400 bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition-shadow duration-300 ease-in-out'>
 					<CardHeader>
 						<CardTitle className='flex items-center justify-between'>

@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 
 export default function useConversation() {
   const [conversation, setConversation] = useState<Conversation[]>([]);
-  const [lastConversation, setLastConversation] = useState<Conversation | null>(null)
+  const [lastConversation, setLastConversation] = useState<Conversation>();
 
   const addMessage = (message: Conversation) => {
     setConversation((prev) => [...prev, {
@@ -41,17 +41,9 @@ export default function useConversation() {
     }
   }, []);
 
-  const getLastConversation = () => {
-    const storedConversation = window.sessionStorage.getItem('conversation');
-    if (storedConversation) {
-      const parsedConversation = JSON.parse(storedConversation) as Conversation[];
-      return parsedConversation[parsedConversation.length - 1];
-    }
-    return null;
-  }
 
   useEffect(() => {
-    setLastConversation(getLastConversation());
+    setLastConversation(conversation[conversation.length - 1]);
   }, [conversation])
 
 
