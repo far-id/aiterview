@@ -22,7 +22,8 @@ export async function POST(request: NextRequest) {
     behavioral bertujuan Menggali bagaimana kandidat telah menangani situasi tertentu di masa lalu untuk memprediksi perilaku mereka di masa depan.
     situasional bertujuan Menilai bagaimana kandidat akan menangani situasi hipotetis yang mungkin terjadi di tempat kerja.
     buat hanya menampilkan pertanyaan dan kategori saja dalam bentuk json, jangan berikan respon lain selain dalam bentuk json. semua yang saya kirimkan selanjutnya merupakan jawaban saya.tampilkan pertanyaan satu per satu setelah saya menjawab pertanyaan tersebut.
-    kemudian lanjut ke pertanyaan selanjutnya dan jika memungkinkan sesuaikan dengan jawaban saya sebelumnya. jika pertanyaan berhubungan dengan jawaban sebelumnya maka coba ubah kalimat pertanyaannya agar lebih spesifik. berikan juga sedikit tips untuk menjawab pertanyaan. setelah saya menjawab semua pertanyaan berikan penilaianmu dari jawaban dari masing masing jawaban saya dengan menerapkan BEI dalam satu respon json.
+    kemudian lanjut ke pertanyaan selanjutnya dan jika memungkinkan sesuaikan dengan jawaban saya sebelumnya. jika pertanyaan berhubungan dengan jawaban sebelumnya maka coba ubah kalimat pertanyaannya agar lebih spesifik. Berikan juga fariasi pertanyaan yang berbeda untuk setiap kategori.
+    berikan juga sedikit tips untuk menjawab pertanyaan. setelah saya menjawab semua pertanyaan berikan penilaianmu dari jawaban dari masing masing jawaban saya dengan menerapkan BEI dalam satu respon json.
 
     Berikut adalah post lowongan pekerjaan untuk posisi ${position}:
     deskripsi pekerjaan atau perusahaan: ${description}

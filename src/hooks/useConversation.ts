@@ -9,10 +9,8 @@ export default function useConversation() {
 
   const addMessage = (message: Conversation) => {
     setConversation((prev) => [...prev, {
-      id: conversation.length + 1,
       role: message.role,
       message: message.message,
-      send_time: Date.now().toString(),
       timeLeft: message.timeLeft ?? undefined,
       category: message.category ?? undefined,
       tips: message.tips ?? undefined,

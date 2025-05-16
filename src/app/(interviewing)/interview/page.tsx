@@ -34,6 +34,7 @@ export default function Page() {
 
 	useEffect(() => {
 		setInterviewQuestion(lastConversation);
+		setCurrentQuestionIndex(Math.ceil(conversation.length / 2));
 	}, [interviewQuestion, lastConversation]);
 
 	const form = useForm<z.infer<typeof aswerSchema>>({
