@@ -1,6 +1,7 @@
 'use server';
 import { NextRequest } from 'next/server';
 import { GoogleGenAI, Type } from "@google/genai";
+import { normalizeConversationText } from '@/lib/utils';
 
 export async function POST(request: NextRequest) {
   if (!process.env.GEMINI_API_KEY) {
@@ -8,20 +9,20 @@ export async function POST(request: NextRequest) {
   }
 
   const { conversations, answer } = await request.json();
-
-  console.log('Conversation:', conversations);
-  console.log('Answer:', answer);
-
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  const history = conversations.map((message: { role: string, text: string, category: string | null }) => ({
+    role: message.role,
+    parts: [{
+      text:
+        message.category ?
+          `${normalizeConversationText(message.text)} [Kategori: ${message.category}]` :
+          normalizeConversationText(message.text)
+    }],
+  }))
 
   const chat = ai.chats.create({
     model: "gemini-2.0-flash",
-    history: [
-      ...conversations.map((message: { role: string, text: string }) => ({
-        role: message.role,
-        parts: [{ text: message.text }],
-      }))
-    ],
+    history: [...history],
     config: {
       responseMimeType: "application/json",
       responseSchema: {
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest) {
   let parsedResponse: any = {};
 
   try {
-    const { text } = await chat.sendMessage({ message: answer, });
+    const { text } = await chat.sendMessage({ message: answer + 'berikan pertanyaan berikutnya, sesuai dengan instruksi yang telah diberikan variasi pertanyaan, penyesuaian dan tetap berdasar pada post lowongan yang telah disebutkan.', });
     console.log('Response text:', text);
     parsedResponse = JSON.parse(text?.match(/{[\s\S]*}/)?.[0] || '{}');
   } catch (error) {

@@ -14,16 +14,15 @@ export async function POST(request: NextRequest) {
   // json pertanyaan berupa { "pertanyaan": string, "kategori": string, "tips": string }
   // json penilaian berupa { "technical": [{ "pertanyaan": string, "penilaian": string, "saran": string }], "behavioral": [{ "pertanyaan": string, "penilaian": string, "saran": string }], "situational": [{ "pertanyaan": string, "penilaian": string, "saran": string }] }
 
+  // * jangan pake karakter "" di prompt, karena bakal di-parse jadi json
   // ? kayanya harus ada yg dibenerin. kalo gw kasih jawaban absurd dia jadi gila? apakah masih? harus di cek terus
-  // todo: kadang ainya ngulang pertanyaan yang sama
-  const prompt = `
-    kamu adalah pewawancara yang sudah berpengalaman. gunakan metode BEI yang mengikuti format "STAR" atau "SAR" atau "CAR" untuk membuat pertanyaan. buatkan 8 pertanyaan dengan kategori 'technical', 'behavioral' atau 'situational'.
+  const prompt = `kamu adalah pewawancara berbahasa indonesia yang sudah ahli, berpengalaman dan adaptif, mampu menggali informasi mendalam dari kandidat. Gunakan metode BEI yang mengikuti format 'STAR' atau 'SAR' atau 'CAR' untuk membuat pertanyaan. buatkan 8 pertanyaan dengan kategori 'technical', 'behavioral' atau 'situational'.
     technical bertujuan Menilai pengetahuan dan keterampilan teknis kandidat yang relevan dengan posisi yang dilamar.
     behavioral bertujuan Menggali bagaimana kandidat telah menangani situasi tertentu di masa lalu untuk memprediksi perilaku mereka di masa depan.
     situasional bertujuan Menilai bagaimana kandidat akan menangani situasi hipotetis yang mungkin terjadi di tempat kerja.
-    buat hanya menampilkan pertanyaan dan kategori saja dalam bentuk json, jangan berikan respon lain selain dalam bentuk json. semua yang saya kirimkan selanjutnya merupakan jawaban saya.tampilkan pertanyaan satu per satu setelah saya menjawab pertanyaan tersebut.
-    kemudian lanjut ke pertanyaan selanjutnya dan jika memungkinkan sesuaikan dengan jawaban saya sebelumnya. jika pertanyaan berhubungan dengan jawaban sebelumnya maka coba ubah kalimat pertanyaannya agar lebih spesifik. Berikan juga fariasi pertanyaan yang berbeda untuk setiap kategori.
-    berikan juga sedikit tips untuk menjawab pertanyaan. setelah saya menjawab semua pertanyaan berikan penilaianmu dari jawaban dari masing masing jawaban saya dengan menerapkan BEI dalam satu respon json.
+    buat hanya menampilkan pertanyaan, kategori dan tips saja dalam bentuk json, jangan berikan respon lain selain dalam bentuk json. semua yang saya kirimkan selanjutnya merupakan jawaban saya.
+    tampilkan pertanyaan satu per satu setelah saya menjawab pertanyaan tersebut. kemudian lanjut ke pertanyaan selanjutnya dan jika memungkinkan sesuaikan dengan jawaban saya sebelumnya. jika pertanyaan berhubungan dengan jawaban saya sebelumnya maka coba ubah kalimat pertanyaannya agar lebih spesifik. berikan beragam pertanyaan yang berhubungan dengan tanggung jawab atau requirement yang ada pada lowongan. Berikan juga variasi pertanyaan yang berbeda untuk setiap kategori.
+    setelah saya menjawab semua pertanyaan, saya akan meminta penilaianmu dari masing masing jawaban saya dengan menerapkan BEI dalam satu respon json.
 
     Berikut adalah post lowongan pekerjaan untuk posisi ${position}:
     deskripsi pekerjaan atau perusahaan: ${description}

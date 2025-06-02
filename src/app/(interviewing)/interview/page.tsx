@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import useConversation from '@/hooks/useConversation';
+import useSummary from '@/hooks/useSummary';
 import { Conversation } from '@/interfaces/conversations';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ChevronRight, Home, Hourglass, TimerReset } from 'lucide-react';
@@ -24,18 +25,14 @@ const aswerSchema = z.object({
 });
 
 export default function Page() {
-	const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(1); //todo: manipulate conversation format that include question number. because if using state, they will be out of sync
+	const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(1);
 	const [onRecording, setOnRecording] = useState(false);
 	const [timeLeft, setTimeLeft] = useState(120); // in seconds
 	const [progressPercentage, setprogressPercentage] = useState(100);
 	const { conversation, addMessage, lastConversation } = useConversation();
+	const { storeSummary } = useSummary();
 
 	const [interviewQuestion, setInterviewQuestion] = useState<Conversation>();
-
-	useEffect(() => {
-		setInterviewQuestion(lastConversation);
-		setCurrentQuestionIndex(Math.ceil(conversation.length / 2));
-	}, [interviewQuestion, lastConversation]);
 
 	const form = useForm<z.infer<typeof aswerSchema>>({
 		resolver: zodResolver(aswerSchema),
@@ -70,6 +67,7 @@ export default function Page() {
 			return;
 		}
 		if (currentQuestionIndex < 8) {
+			// go to next question
 			addMessage({
 				role: 'user',
 				message: form.getValues('answer'),
@@ -87,6 +85,7 @@ export default function Page() {
 							...conversation.map((message) => ({
 								role: message.role,
 								text: message.message,
+								category: message.category,
 							})),
 						],
 						answer: form.getValues('answer'),
@@ -125,8 +124,50 @@ export default function Page() {
 			setprogressPercentage(100);
 			form.reset();
 		} else {
-			// todo: bikin end point untuk bikin summary
-			redirect('/summary');
+			// go to summary page
+			try {
+				addMessage({
+					role: 'user',
+					message: form.getValues('answer'),
+					timeLeft: timeLeft,
+				});
+				const response = await fetch('/api/summary', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({
+						conversations: [
+							...conversation.map((message) => ({
+								role: message.role,
+								text: message.message,
+								category: message.category,
+							})),
+						],
+						answer: form.getValues('answer'),
+					}),
+				});
+				if (!response.ok) {
+					throw new Error('Something went wrong!');
+				} else {
+					response.json().then((data) => {
+						if (data.error) {
+							alert(data.error);
+						} else {
+							const { message } = data;
+							console.log('Summary data:', message);
+							storeSummary({
+								technical: message.technical,
+								behavioral: message.behavioral,
+								situational: message.situational,
+							});
+							redirect('/summary');
+						}
+					});
+				}
+			} catch (error) {
+				console.error('Error:', error);
+			}
 		}
 	}
 
@@ -136,6 +177,11 @@ export default function Page() {
 
 		return String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
 	}
+
+	useEffect(() => {
+		setInterviewQuestion(lastConversation);
+		setCurrentQuestionIndex(Math.ceil(conversation.length / 2));
+	}, [interviewQuestion, lastConversation]);
 
 	useEffect(() => {
 		if (timeLeft <= 0) {
@@ -188,7 +234,7 @@ export default function Page() {
 						<Progress value={progressPercentage} className='h-2 bg-gray-900' />
 					</div>
 				</div>
-				<QuestionCard question={interviewQuestion} />
+				{interviewQuestion && <QuestionCard {...interviewQuestion} />}
 				<Card className='mb-6 border-l-4 border-l-blue-500 dark:border-l-blue-400 bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition-shadow duration-300 ease-in-out'>
 					<CardHeader>
 						<CardTitle className='flex items-center justify-between'>

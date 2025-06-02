@@ -5,7 +5,7 @@ import clsx from 'clsx';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Conversation } from '@/interfaces/conversations';
 
-const QuestionCard = ({ question }: { question: Conversation }) => {
+const QuestionCard = (question: Conversation) => {
 	return (
 		<Card className='mb-6 border-l-4 border-l-blue-500 dark:border-l-blue-400 bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition-shadow duration-300 ease-in-out'>
 			<CardHeader className='flex flex-row items-center justify-between py-3'>
@@ -14,7 +14,7 @@ const QuestionCard = ({ question }: { question: Conversation }) => {
 						className={clsx('inline-flex items-center px-2 py-1 rounded-full text-xs font-medium', {
 							'bg-blue-100 text-blue-800': question?.category === 'technical',
 							'bg-green-100 text-green-800': question?.category === 'behavioral',
-							'bg-purple-100 text-purple-800': question?.category === 'other',
+							'bg-purple-100 text-purple-800': question?.category === 'situational',
 						})}
 					>
 						{question?.category}
@@ -25,7 +25,7 @@ const QuestionCard = ({ question }: { question: Conversation }) => {
 						<PopoverTrigger>
 							<HelpCircle className='h-5 w-5 text-gray-400 hover:text-gray-600' />
 						</PopoverTrigger>
-						<PopoverContent className='w-fit'>{question.tips}</PopoverContent>
+						<PopoverContent>{question.tips}</PopoverContent>
 					</Popover>
 				)}
 			</CardHeader>
