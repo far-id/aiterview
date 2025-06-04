@@ -86,24 +86,21 @@ export async function POST(request: NextRequest) {
       message: situationalPrompt,
     });
 
-    console.log('Response text:', technicalFeednack);
     parsedResponse = {
       technical: JSON.parse(technicalFeednack ?? '[]'),
       behavioral: JSON.parse(behavioralFeednack ?? '[]'),
       situational: JSON.parse(situationalFeednack ?? '[]'),
     }
   } catch (error) {
-    // todo: handle error (buka dokumentasi)
-    if ((error as { codex?: number }).code === 503) {
-      return new Response(JSON.stringify({ error: 'Model sedang overload' }), { status: 503 });
-    }
-    else {
+    const errorCode = (error as { code?: number }).code;
+    if (errorCode === 500 || errorCode === 501 || errorCode === 502 || errorCode === 503 || errorCode === 504) {
+      return new Response(JSON.stringify({ error: `Terjadi kesalahan pada server (kode: ${errorCode})` }), { status: errorCode });
+    } else {
       console.error('Error parsing response:', error);
       return new Response(JSON.stringify({ error: 'Terjadi kesalahan' }), { status: 500 });
     }
   }
 
-  console.log('Parsed response:', parsedResponse);
   return new Response(
     JSON.stringify({ message: parsedResponse }),
     {

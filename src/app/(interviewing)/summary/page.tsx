@@ -4,10 +4,15 @@ import { SummaryPDF } from '@/components/my/summaryPdf';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import useSummary from '@/hooks/useSummary';
 import { SummarySchema } from '@/interfaces/summarySchema';
-import { PDFDownloadLink } from '@react-pdf/renderer';
+import dynamic from 'next/dynamic';
 import { ChevronLeft, ChevronRight, Redo, Home, Download } from 'lucide-react';
+
+// Dynamically import PDFDownloadLink to avoid SSR issues
+const PDFDownloadLink = dynamic(
+	() => import('@react-pdf/renderer').then((mod) => mod.PDFDownloadLink),
+	{ ssr: false }
+);
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -60,7 +65,6 @@ const dummySummary: SummarySchema = {
 export default function Summary() {
 	const [currentCategory, setCurrentCategory] = useState<keyof SummarySchema>('technical');
 	const [currentIndex, setCurrentIndex] = useState(0);
-	// const { summary } = useSummary();
 	const [summary, setSummary] = useState<SummarySchema>(dummySummary); // Initialize with dummy data
 	useEffect(() => {
 		const storedSummary = window.sessionStorage.getItem('summary');
@@ -70,8 +74,6 @@ export default function Summary() {
 			setSummary(dummySummary); // Use dummy data if no summary is found
 		}
 	}, []);
-
-	console.log('Summary:', summary);
 
 	const navigateToNext = () => {
 		if (currentIndex < summary[currentCategory].length - 1) {

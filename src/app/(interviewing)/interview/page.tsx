@@ -155,7 +155,6 @@ export default function Page() {
 							alert(data.error);
 						} else {
 							const { message } = data;
-							console.log('Summary data:', message);
 							storeSummary({
 								technical: message.technical,
 								behavioral: message.behavioral,

@@ -1,3 +1,4 @@
+'use client';
 import { SummaryItemSchema, SummarySchema } from '@/interfaces/summarySchema';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 

@@ -63,7 +63,6 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  console.log('Parsed response:', parsedResponse);
   return new Response(
     JSON.stringify({ prompt, message: parsedResponse }),
     {

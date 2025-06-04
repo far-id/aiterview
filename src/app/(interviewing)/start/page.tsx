@@ -23,6 +23,7 @@ import Navbar from '@/components/my/navbar';
 import Footer from '@/components/my/footer';
 import JobPlatform from '@/components/my/job-platform';
 import useConversation from '@/hooks/useConversation';
+import useSummary from '@/hooks/useSummary';
 
 const formSchema = z.object({
 	position: z.string().min(3, {
@@ -94,6 +95,7 @@ export default function Page() {
 		},
 	});
 	const { addMessage, clearConversation } = useConversation();
+	const { clearSummary } = useSummary();
 	const router = useRouter();
 
 	const onSubmit: SubmitHandler<z.infer<typeof formSchema>> = async (data) => {
@@ -113,7 +115,6 @@ export default function Page() {
 				},
 				body,
 			});
-			console.log('Response:', response);
 			if (!response.ok) {
 				throw new Error('Something went wrong!');
 			} else {
@@ -122,7 +123,6 @@ export default function Page() {
 						alert(data.error);
 					} else {
 						const { message, prompt } = data;
-						console.log('AI response:', message);
 						addMessage({
 							role: 'user',
 							message: prompt,
@@ -144,7 +144,7 @@ export default function Page() {
 
 	useEffect(() => {
 		clearConversation();
-		console.log('all clear');
+		clearSummary();
 	}, []);
 
 	return (

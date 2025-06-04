@@ -41,7 +41,6 @@ export async function POST(request: NextRequest) {
 
   try {
     const { text } = await chat.sendMessage({ message: answer + 'berikan pertanyaan berikutnya, sesuai dengan instruksi yang telah diberikan variasi pertanyaan, penyesuaian dan tetap berdasar pada post lowongan yang telah disebutkan.', });
-    console.log('Response text:', text);
     parsedResponse = JSON.parse(text?.match(/{[\s\S]*}/)?.[0] || '{}');
   } catch (error) {
     if ((error as { code?: number }).code === 503) {
@@ -53,7 +52,6 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  console.log('Parsed response:', parsedResponse);
   return new Response(
     JSON.stringify({ message: parsedResponse }),
     {
