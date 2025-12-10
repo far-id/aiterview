@@ -1,18 +1,22 @@
 import type { Metadata } from 'next';
-import localFont from 'next/font/local';
+import { Inter, Playfair_Display, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from 'next-themes';
 import { Toaster } from '@/components/ui/sonner';
 
-const geistSans = localFont({
-	src: './fonts/GeistVF.woff',
-	variable: '--font-geist-sans',
-	weight: '100 900',
+const inter = Inter({
+	subsets: ['latin'],
+	variable: '--font-sans',
 });
-const geistMono = localFont({
-	src: './fonts/GeistMonoVF.woff',
-	variable: '--font-geist-mono',
-	weight: '100 900',
+
+const playfair = Playfair_Display({
+	subsets: ['latin'],
+	variable: '--font-serif',
+});
+
+const jetbrains = JetBrains_Mono({
+	subsets: ['latin'],
+	variable: '--font-mono',
 });
 
 export const metadata: Metadata = {
@@ -27,13 +31,12 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang='en' suppressHydrationWarning={true}>
-			<body className={`${geistSans.variable} ${geistMono.variable} antialiased w-full`}>
-				<ThemeProvider attribute='class' defaultTheme='dark' enableSystem disableTransitionOnChange>
+			<body
+				className={`${inter.variable} ${playfair.variable} ${jetbrains.variable} antialiased w-full`}
+			>
+				<ThemeProvider defaultTheme='dark'>
 					<main className='min-h-screen'>{children}</main>
-					<Toaster richColors />
-					{/* <div className='absolute right-0 bottom-0 border p-3 bg-white sm:bg-gray-300 md:bg-gray-600 lg:bg-gray-900 xl:bg-red-200 2xl:bg-red-900'>
-						Screen
-					</div> */}
+					<Toaster richColors position='top-right' />
 				</ThemeProvider>
 			</body>
 		</html>

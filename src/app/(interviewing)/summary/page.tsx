@@ -1,6 +1,6 @@
 'use client';
-import QuestionCard from '@/components/my/question-card';
-import { SummaryPDF } from '@/components/my/summaryPdf';
+import QuestionCard from '@/components/app/question-card';
+import { SummaryPDF } from '@/components/app/summaryPdf';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -66,12 +66,13 @@ export default function Summary() {
 	const [currentCategory, setCurrentCategory] = useState<keyof SummarySchema>('technical');
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [summary, setSummary] = useState<SummarySchema>(dummySummary); // Initialize with dummy data
+
 	useEffect(() => {
 		const storedSummary = window.sessionStorage.getItem('summary');
 		if (storedSummary) {
 			setSummary(JSON.parse(storedSummary));
 		} else {
-			setSummary(dummySummary); // Use dummy data if no summary is found
+			redirect('/start'); // Redirect if no summary is found
 		}
 	}, []);
 

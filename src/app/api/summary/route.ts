@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
   }
 
   const technicalChat = ai.chats.create({
-    model: "	gemini-2.5-flash-preview-05-20",
+    model: "gemini-2.5-flash-preview-05-20",
     history: history,
     config: config,
   });

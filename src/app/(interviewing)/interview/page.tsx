@@ -1,38 +1,39 @@
 'use client';
-import QuestionCard from '@/components/my/question-card';
-import Recorder from '@/components/my/Recorder';
-import ThemeToggle from '@/components/my/theme-toggle';
+import QuestionCard from '@/components/app/question-card';
+import Recorder from '@/components/app/Recorder';
+import ThemeToggle from '@/components/app/theme-toggle';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import useConversation from '@/hooks/useConversation';
+import { useConversationContext } from '@/context/conversationContext';
 import useSummary from '@/hooks/useSummary';
 import { Conversation } from '@/interfaces/conversations';
+import { formatSecondsToMMSS } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ChevronRight, Home, Hourglass, TimerReset } from 'lucide-react';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
 const aswerSchema = z.object({
-	answer: z.string().min(2, { message: 'Answer is required' }),
+	answer: z.string().min(2, { message: 'We need your answer' }),
 });
 
 export default function Page() {
 	const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(1);
-	const [onRecording, setOnRecording] = useState(false);
-	const [timeLeft, setTimeLeft] = useState(120); // in seconds
-	const [progressPercentage, setprogressPercentage] = useState(100);
-	const { conversation, addMessage, lastConversation } = useConversation();
-	const { storeSummary } = useSummary();
-
+	const [onRecording, setOnRecording] = useState<boolean>(false);
+	const [timeLeft, setTimeLeft] = useState<number>(120); // in seconds
+	const [progressPercentage, setprogressPercentage] = useState<number>(100);
+	const { conversations, addConversation, lastConversation } = useConversationContext();
 	const [interviewQuestion, setInterviewQuestion] = useState<Conversation>();
+	const { storeSummary } = useSummary();
+	const router = useRouter();
 
 	const form = useForm<z.infer<typeof aswerSchema>>({
 		resolver: zodResolver(aswerSchema),
@@ -60,20 +61,13 @@ export default function Page() {
 
 	async function nextQuestionHandler() {
 		if (form.getValues('answer').length < 2) {
-			toast.error('Jawaban tidak boleh kosong', {
-				position: 'top-right',
+			toast.error('We need your answer', {
 				duration: 10000,
 			});
 			return;
 		}
 		if (currentQuestionIndex < 8) {
 			// go to next question
-			addMessage({
-				role: 'user',
-				message: form.getValues('answer'),
-				timeLeft: timeLeft,
-			});
-
 			try {
 				const response = await fetch('/api/questions', {
 					method: 'POST',
@@ -81,120 +75,119 @@ export default function Page() {
 						'Content-Type': 'application/json',
 					},
 					body: JSON.stringify({
-						conversations: [
-							...conversation.map((message) => ({
-								role: message.role,
-								text: message.message,
-								category: message.category,
-							})),
-						],
+						conversations: conversations.map((message) => ({
+							role: message.role,
+							text: message.message,
+							category: message.category,
+						})),
 						answer: form.getValues('answer'),
 					}),
 				});
+
 				if (!response.ok) {
-					throw new Error('Something went wrong!');
-				} else {
-					response.json().then((data) => {
-						if (data.error) {
-							alert(data.error);
-						} else {
-							const { message } = data;
-
-							addMessage({
-								role: 'model',
-								message: message.pertanyaan,
-								category: message.kategori,
-								tips: message.tips,
-							});
-							setInterviewQuestion({
-								role: 'model',
-								message: message.pertanyaan,
-								category: message.kategori,
-								tips: message.tips,
-							});
-						}
-					});
+					throw new Error('Failed to fetch next question');
 				}
-			} catch (error) {
-				console.error('Error:', error);
-			}
 
-			setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
-			setTimeLeft(120);
-			setprogressPercentage(100);
-			form.reset();
+				response.json().then((data) => {
+					if (data.error) {
+						toast.error(data.error);
+					} else {
+						const { message } = data;
+						addConversation({
+							role: 'user',
+							message: form.getValues('answer'),
+							timeLeft: timeLeft,
+						});
+
+						addConversation({
+							role: 'model',
+							message: message.question,
+							category: message.category,
+							tips: message.tips,
+						});
+
+						setInterviewQuestion({
+							role: 'model',
+							message: message.question,
+							category: message.category,
+							tips: message.tips,
+						});
+					}
+				});
+				setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+				setTimeLeft(120);
+				setprogressPercentage(100);
+				form.reset();
+			} catch (error) {
+				// removeLastConversation();
+				console.error('Error:', error);
+				const errorMessage = (error as Error).message;
+				toast.error(errorMessage, {
+					duration: 10000,
+				});
+			}
 		} else {
 			// go to summary page
 			try {
-				addMessage({
-					role: 'user',
-					message: form.getValues('answer'),
-					timeLeft: timeLeft,
-				});
 				const response = await fetch('/api/summary', {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
 					},
 					body: JSON.stringify({
-						conversations: [
-							...conversation.map((message) => ({
-								role: message.role,
-								text: message.message,
-								category: message.category,
-							})),
-						],
+						conversations: conversations.map((message) => ({
+							role: message.role,
+							text: message.message,
+							category: message.category,
+						})),
 						answer: form.getValues('answer'),
 					}),
 				});
 				if (!response.ok) {
-					throw new Error('Something went wrong!');
-				} else {
-					response.json().then((data) => {
-						if (data.error) {
-							alert(data.error);
-						} else {
-							const { message } = data;
-							storeSummary({
-								technical: message.technical,
-								behavioral: message.behavioral,
-								situational: message.situational,
-							});
-							redirect('/summary');
-						}
-					});
+					throw new Error('Failed to fetch summary');
 				}
+				response.json().then((data) => {
+					if (data.error) {
+						alert(data.error);
+					} else {
+						const { message } = data;
+						addConversation({
+							role: 'user',
+							message: form.getValues('answer'),
+							timeLeft: timeLeft,
+						});
+
+						storeSummary({
+							technical: message.technical,
+							behavioral: message.behavioral,
+							situational: message.situational,
+						});
+
+						router.push('/summary');
+					}
+				});
 			} catch (error) {
+				// removeLastConversation();
 				console.error('Error:', error);
+				toast.error('Failed to fetch summary. Please try again.', {
+					duration: 10000,
+				});
 			}
 		}
 	}
 
-	function formatSecondsToMMSS(seconds: number): string {
-		const mins = Math.floor(seconds / 60);
-		const secs = seconds % 60;
-
-		return String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
-	}
-
-	useEffect(() => {
-		setInterviewQuestion(lastConversation);
-		setCurrentQuestionIndex(Math.ceil(conversation.length / 2));
-	}, [interviewQuestion, lastConversation]);
-
+	// Timer logic
 	useEffect(() => {
 		if (timeLeft <= 0) {
 			setOnRecording(false);
-			toast.error('Waktu habis', {
-				position: 'top-right',
+			toast.error('Time is up', {
 				duration: 10000,
 			});
 			return;
 		}
 
 		if (timeLeft == 30) {
-			toast.info('Waktumu semakin tipis', {
-				position: 'top-right',
+			toast.info('Your time is running out', {
 				duration: 10000,
 			});
 		}
@@ -210,6 +203,12 @@ export default function Page() {
 		return () => clearInterval(interval);
 	}, [timeLeft]);
 
+	useEffect(() => {
+		setInterviewQuestion(lastConversation);
+		setCurrentQuestionIndex(Math.ceil(conversations.length / 2));
+		console.log('conversations interviewpage: ', conversations);
+	}, [conversations, lastConversation]);
+
 	return (
 		<div className='min-h-screen bg-background flex flex-col'>
 			<div className='flex items-center justify-between px-4 py-3 border-b'>
@@ -218,7 +217,7 @@ export default function Page() {
 						<Home className='h-5 w-5' />
 					</Button>
 				</Link>
-				<div className='text-sm font-medium'>Pertanyaan {currentQuestionIndex} dari 8</div>
+				<div className='text-sm font-medium'>Question {currentQuestionIndex} of 8</div>
 				<ThemeToggle />
 			</div>
 
@@ -237,7 +236,7 @@ export default function Page() {
 				<Card className='mb-6 border-l-4 border-l-blue-500 dark:border-l-blue-400 bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition-shadow duration-300 ease-in-out'>
 					<CardHeader>
 						<CardTitle className='flex items-center justify-between'>
-							<span className='font-normal'>Jawaban</span>
+							<span className='font-normal'>Your Answer</span>
 
 							<TooltipProvider>
 								<Tooltip>
@@ -266,7 +265,7 @@ export default function Page() {
 												<Textarea
 													rows={4}
 													disabled={onRecording || timeLeft <= 0}
-													placeholder='Pengalaman saya ...'
+													placeholder='...'
 													{...field}
 												/>
 											</FormControl>
@@ -282,7 +281,11 @@ export default function Page() {
 				</Card>
 
 				<div className='flex justify-end'>
-					<Button onClick={nextQuestionHandler}>
+					<Button
+						onClick={nextQuestionHandler}
+						className='cursor-pointer'
+						disabled={onRecording || form.getValues('answer').length < 2}
+					>
 						{currentQuestionIndex < 8 ? (
 							<>
 								Next

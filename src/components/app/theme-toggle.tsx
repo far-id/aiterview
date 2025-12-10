@@ -1,19 +1,27 @@
 'use client';
 
-import * as React from 'react';
 import { MoonIcon, SunIcon } from '@radix-ui/react-icons';
 import { useTheme } from 'next-themes';
 
 import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react';
 
 const ThemeToggle = () => {
+	const [mounted, setMounted] = useState(false);
 	const { theme, setTheme } = useTheme();
 
+	// useEffect only runs on the client, so now we can safely show the UI
+	useEffect(() => {
+		setMounted(true);
+	}, []);
+
+	if (!mounted) {
+		return null;
+	}
 	function handleThemeChange() {
 		if (theme === 'light') setTheme('dark');
 		else setTheme('light');
 	}
-
 	return (
 		<Button
 			size='icon'

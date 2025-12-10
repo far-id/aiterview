@@ -65,7 +65,7 @@ const Footer = () => {
 
 					<div className='mt-4 sm:mt-0 flex mx-auto flex-col items-center md:items-start'>
 						<p className='text-lg sm:text-xl font-semibold'>Hubungi Kami</p>
-						<p className='text-gray-400 text-sm sm:text-base'>Email: info@aiterview.com</p>
+						<p className='text-gray-400 text-sm sm:text-base'>Email: fsrizkywijaya@gmail.com</p>
 					</div>
 				</div>
 				<Separator className='my-4' />

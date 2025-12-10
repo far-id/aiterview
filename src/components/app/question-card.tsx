@@ -25,7 +25,7 @@ const QuestionCard = (question: Conversation) => {
 						<PopoverTrigger>
 							<HelpCircle className='h-5 w-5 text-gray-400 hover:text-gray-600' />
 						</PopoverTrigger>
-						<PopoverContent>{question.tips}</PopoverContent>
+						<PopoverContent className='min-w-96'>{question.tips}</PopoverContent>
 					</Popover>
 				)}
 			</CardHeader>

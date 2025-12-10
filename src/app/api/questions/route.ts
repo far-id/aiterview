@@ -1,15 +1,11 @@
 'use server';
 import { NextRequest } from 'next/server';
-import { GoogleGenAI, Type } from "@google/genai";
+import { Type } from "@google/genai";
 import { normalizeConversationText } from '@/lib/utils';
+import { sendGemini } from '@/lib/sendGemini';
 
 export async function POST(request: NextRequest) {
-  if (!process.env.GEMINI_API_KEY) {
-    return new Response(JSON.stringify({ error: 'Gemini API key is not set' }), { status: 500 });
-  }
-
   const { conversations, answer } = await request.json();
-  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
   const history = conversations.map((message: { role: string, text: string, category: string | null }) => ({
     role: message.role,
     parts: [{
@@ -20,43 +16,41 @@ export async function POST(request: NextRequest) {
     }],
   }))
 
-  const chat = ai.chats.create({
-    model: "gemini-2.0-flash",
-    history: [...history],
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          pertanyaan: { type: Type.STRING },
-          kategori: { type: Type.STRING, enum: ["technical", "behavioral", "situational"] },
-          tips: { type: Type.STRING },
-        },
-        propertyOrdering: ["pertanyaan", "kategori", "tips"],
-      }
-    }
-  });
-
-  let parsedResponse: any = {};
-
   try {
-    const { text } = await chat.sendMessage({ message: answer + 'berikan pertanyaan berikutnya, sesuai dengan instruksi yang telah diberikan variasi pertanyaan, penyesuaian dan tetap berdasar pada post lowongan yang telah disebutkan.', });
-    parsedResponse = JSON.parse(text?.match(/{[\s\S]*}/)?.[0] || '{}');
-  } catch (error) {
-    if ((error as { code?: number }).code === 503) {
-      return new Response(JSON.stringify({ error: 'Model sedang overload' }), { status: 503 });
-    }
-    else {
-      console.error('Error parsing response:', error);
-      return new Response(JSON.stringify({ error: 'Terjadi kesalahan' }), { status: 500 });
-    }
-  }
+    const prompt = `
+      ${answer}.
 
-  return new Response(
-    JSON.stringify({ message: parsedResponse }),
-    {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    }
-  );
+      now generate the next question according to all the previous instructions
+      the next question must follow the same structure and style used before
+      adapt and personalize the next question based on the above answer if possible
+      if the answer gives specific information relate your next question directly to it and probe deeper
+      maintain variety across technical behavioral and situational categories
+      ensure the new question remains aligned with the job description and requirements from the same job posting
+      output only JSON with the keys question category tips and do not include anything else outside the JSON
+    `;
+    const response = await sendGemini("gemini-2.5-flash-lite", prompt, history, {
+      type: Type.OBJECT,
+      properties: {
+        question: { type: Type.STRING },
+        category: { type: Type.STRING, enum: ["technical", "behavioral", "situational"] },
+        tips: { type: Type.STRING },
+      },
+      propertyOrdering: ["question", "category", "tips"],
+    });
+
+    console.log('Received response:', response);
+
+    return new Response(
+      JSON.stringify({ message: response }),
+      {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+  } catch (error) {
+    const errorCode = (error as { code?: number }).code;
+    console.error('Error parsing response:', error);
+
+    return new Response(JSON.stringify({ error: `Error Occured on Server (code: ${errorCode})` }), { status: errorCode });
+  }
 }

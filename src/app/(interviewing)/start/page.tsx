@@ -3,7 +3,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { z } from 'zod';
-
 import { Button } from '@/components/ui/button';
 import {
 	Form,
@@ -19,25 +18,29 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
-import Navbar from '@/components/my/navbar';
-import Footer from '@/components/my/footer';
-import JobPlatform from '@/components/my/job-platform';
-import useConversation from '@/hooks/useConversation';
+import Navbar from '@/components/app/navbar';
+import Footer from '@/components/app/footer';
+import JobPlatform from '@/components/app/job-platform';
 import useSummary from '@/hooks/useSummary';
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { toast } from 'sonner';
+import { useConversationContext } from '@/context/conversationContext';
 
 const formSchema = z.object({
 	position: z.string().min(3, {
-		message: 'Posisi minimal berisi 3 karakter.',
+		message: 'Position must be at least 3 characters long',
 	}),
-	description: z.string().min(20, {
-		message: 'Deskripsi minimal berisi 20 karakter.',
+	jobDescription: z.string().min(20, {
+		message: 'Job description must be at least 20 characters long',
 	}),
-	responsibility: z.string().min(20, {
-		message: 'Tanggung jawab minimal berisi 20 karakter.',
-	}),
-	requirement: z.string().min(20, {
-		message: 'Persyaratan minimal berisi 20 karakter.',
-	}),
+	language: z.enum(['indonesian', 'english']).default('indonesian'),
 });
 
 const platforms: { name: string; image: string; url: string; bg?: string }[] = [
@@ -89,22 +92,20 @@ export default function Page() {
 		resolver: zodResolver(formSchema),
 		defaultValues: {
 			position: '',
-			description: '',
-			responsibility: '',
-			requirement: '',
+			jobDescription: '',
+			language: 'indonesian',
 		},
 	});
-	const { addMessage, clearConversation } = useConversation();
+	const { addConversation, clearConversation } = useConversationContext();
 	const { clearSummary } = useSummary();
 	const router = useRouter();
 
 	const onSubmit: SubmitHandler<z.infer<typeof formSchema>> = async (data) => {
-		const { position, description, responsibility, requirement } = data;
+		const { position, jobDescription, language } = data;
 		const body = JSON.stringify({
 			position,
-			description,
-			responsibility,
-			requirement,
+			jobDescription,
+			language,
 		});
 
 		try {
@@ -116,21 +117,23 @@ export default function Page() {
 				body,
 			});
 			if (!response.ok) {
-				throw new Error('Something went wrong!');
+				toast.error('Failed to start interview simulation. Please try again.', {
+					duration: 10000,
+				});
 			} else {
 				response.json().then((data) => {
 					if (data.error) {
 						alert(data.error);
 					} else {
 						const { message, prompt } = data;
-						addMessage({
+						addConversation({
 							role: 'user',
 							message: prompt,
 						});
-						addMessage({
+						addConversation({
 							role: 'model',
-							message: message.pertanyaan,
-							category: message.kategori,
+							message: message.question,
+							category: message.category,
 							tips: message.tips,
 						});
 					}
@@ -150,9 +153,9 @@ export default function Page() {
 	return (
 		<>
 			<Navbar />
-			<div className='flex flex-col md:flex-row w-full px-4 justify-center mx-auto container md:w-4/5 mt-20'>
+			<div className='flex flex-col md:flex-row w-full px-4 justify-center mx-auto container md:w-4/5 my-20'>
 				<div className='flex flex-col w-full md:w-7/12 md:m-4'>
-					<h1 className='text-2xl font-bold tracking-tight lg:text-4xl'>Deskripsikan Pekerjaan</h1>
+					<h1 className='text-2xl font-bold tracking-tight lg:text-4xl'>Job Descriptions</h1>
 					<div>
 						<Form {...form}>
 							<form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
@@ -161,7 +164,7 @@ export default function Page() {
 									name='position'
 									render={({ field }) => (
 										<FormItem>
-											<FormLabel>Nama Posisi</FormLabel>
+											<FormLabel>Position</FormLabel>
 											<FormControl>
 												<Input placeholder='AI Engineer' {...field} />
 											</FormControl>
@@ -171,12 +174,16 @@ export default function Page() {
 								/>
 								<FormField
 									control={form.control}
-									name='description'
+									name='jobDescription'
 									render={({ field }) => (
 										<FormItem>
 											<FormLabel>Deskripsi</FormLabel>
 											<FormControl>
-												<Textarea rows={3} placeholder='Sebagai AI Engineer di ....' {...field} />
+												<Textarea
+													rows={18}
+													placeholder={'Requirement: ...\n\n\nResponsibility: ...\n\n\n....'}
+													{...field}
+												/>
 											</FormControl>
 											<FormMessage />
 										</FormItem>
@@ -184,33 +191,48 @@ export default function Page() {
 								/>
 								<FormField
 									control={form.control}
-									name='responsibility'
+									name='language'
 									render={({ field }) => (
 										<FormItem>
-											<FormLabel>Tanggung Jawab</FormLabel>
+											<FormLabel className='flex items-center gap-1'>
+												Language
+												<Popover>
+													<PopoverTrigger>
+														<svg
+															xmlns='http://www.w3.org/2000/svg'
+															width={15}
+															height={15}
+															viewBox='0 0 24 24'
+														>
+															<path
+																fill='currentColor'
+																d='M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10s-4.477 10-10 10m0-2a8 8 0 1 0 0-16a8 8 0 0 0 0 16m-1-5h2v2h-2zm2-1.645V14h-2v-1.5a1 1 0 0 1 1-1a1.5 1.5 0 1 0-1.471-1.794l-1.962-.393A3.501 3.501 0 1 1 13 13.355'
+															></path>
+														</svg>
+													</PopoverTrigger>
+													<PopoverContent>
+														Select the language for the interview questions and answers.
+													</PopoverContent>
+												</Popover>
+											</FormLabel>
 											<FormControl>
-												<Textarea rows={5} placeholder='- Mengembangakan ....' {...field} />
+												<Select onValueChange={field.onChange} value={field.value}>
+													<SelectTrigger className='w-full'>
+														<SelectValue placeholder='Language' />
+													</SelectTrigger>
+													<SelectContent position='popper' className='z-50'>
+														<SelectItem value='indonesian'>Indonesian</SelectItem>
+														<SelectItem value='english'>English</SelectItem>
+													</SelectContent>
+												</Select>
 											</FormControl>
 											<FormMessage />
 										</FormItem>
 									)}
 								/>
-								<FormField
-									control={form.control}
-									name='requirement'
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Persyaratan</FormLabel>
-											<FormControl>
-												<Textarea rows={5} placeholder='- Pengalaman +20 tahun' {...field} />
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
-								<div className='flex justify-center'>
-									<Button type='submit' disabled={form.formState.isSubmitting}>
-										{form.formState.isSubmitting ? 'Memulai...' : 'Mulai Wawancara'}
+								<div className='flex justify-center w-full'>
+									<Button className='w-full' type='submit' disabled={form.formState.isSubmitting}>
+										{form.formState.isSubmitting ? 'Starting...' : 'Start Interview Simulation'}
 									</Button>
 								</div>
 							</form>
@@ -218,16 +240,15 @@ export default function Page() {
 					</div>
 				</div>
 				<div className='flex flex-col w-full md:w-5/12 md:m-4'>
-					<h1 className='text-2xl font-bold tracking-tight lg:text-4xl'>Cari Lowongan</h1>
+					<h1 className='text-2xl font-bold tracking-tight lg:text-4xl'>Job Openings</h1>
 					<Alert className='my-4'>
 						<Terminal className='h-4 w-4' />
 						<AlertTitle>Tips!</AlertTitle>
 						<AlertDescription className='leading-5 text-balance'>
-							Untuk mendapatkan simulasi wawancara yang lebih akurat, pastikan Anda mengisi form
-							dengan spesifik dan jelas. Pilih nama pekerjaan yang sesuai, gunakan referensi dari
-							situs pencari kerja, dan tuliskan tanggung jawab serta persyaratan secara rinci.
-							Semakin detail informasi yang Anda berikan, semakin realistis pengalaman wawancara
-							yang akan Anda dapatkan.
+							To get a more accurate interview simulation, make sure you fill out the form clearly
+							and specifically. Choose an appropriate job title, use references from job search
+							sites, and describe responsibilities and requirements in detail. The more detailed the
+							information you provide, the more realistic the interview experience will be.
 						</AlertDescription>
 					</Alert>
 					<div className='grid grid-cols-2 gap-2'>

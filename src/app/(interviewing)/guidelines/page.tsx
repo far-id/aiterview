@@ -20,11 +20,11 @@ export default function Guidelines() {
 			<div className='container mx-auto px-4 py-8 max-w-4xl'>
 				<header className='mb-6 text-center'>
 					<h1 className='text-3xl font-bold tracking-tight text-interview-dark mb-2'>
-						Sebelum Memulai Simulasi Wawancara
+						Before Starting the Interview Simulation
 					</h1>
 					<p className='text-gray-600 dark:text-gray-200 text-balance'>
-						Pastikan Anda memahami cara kerja simulasi wawancara ini dan ikuti panduan di bawah ini
-						untuk memaksimalkan pengalaman Anda.
+						Make sure you understand how this interview simulation works, and follow the guidelines
+						below to get the most out of your experience.
 					</p>
 				</header>
 
@@ -32,7 +32,7 @@ export default function Guidelines() {
 					<CardHeader className='pb-2'>
 						<CardTitle className='flex items-center text-xl'>
 							<Info className='h-5 w-5 mr-2 text-blue-500' />
-							Panduan Simulasi Wawancara
+							Interview Simulation Guidelines
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
@@ -40,70 +40,68 @@ export default function Guidelines() {
 							<div>
 								<h3 className='font-medium flex items-center'>
 									<CheckCircle className='h-4 w-4 mr-2 text-green-500' />
-									Siapkan Diri Anda
+									Prepare Yourself
 								</h3>
 								<p className='text-sm text-gray-600 dark:text-gray-200 ml-6'>
-									Temukan tempat yang tenang dan nyaman untuk wawancara. Pastikan perangkat Anda
-									dalam keadaan baik dan siap digunakan.
+									Find a quiet and comfortable place for the interview. Make sure your device is in
+									good condition and ready to use.
 								</p>
 							</div>
 							<div>
 								<h3 className='font-medium flex items-center'>
 									<MessageCircleQuestion className='h-4 w-4 mr-2 text-green-500' />
-									Pertanyaan yang dilontarkan
+									Interview Questions
 								</h3>
 								<p className='text-sm text-gray-600 dark:text-gray-200 ml-6'>
-									Anda akan diberikan serangkaian pertanyaan wawancara satu per satu. Setiap
-									pertanyaan diatur waktunya untuk mensimulasikan lingkungan wawancara yang
-									sebenarnya.
+									You will be given a series of interview questions one at a time. Answer each
+									question to the best of your ability.
 								</p>
 							</div>
 
 							<div>
 								<h3 className='font-medium flex items-center'>
 									<Mic className='h-4 w-4 mr-2 text-green-500' />
-									Jawab dengan suara
+									Answer with Voice
 								</h3>
 								<p className='text-sm text-gray-600 dark:text-gray-200 ml-6'>
-									Jawab setiap pertanyaan dengan berbicara. Anda dapat menggunakan mikrofon untuk
-									merekam jawaban Anda. Pastikan suara Anda jelas dan terdengar baik. Klik ikon
-									mikrofon untuk memulai perekaman, dan klik lagi untuk berhenti.
+									You can respond to each question by speaking. Use a microphone to record your
+									answers. Make sure your voice is clear and audible. Click the microphone icon to
+									start recording, and click it again to stop.
 								</p>
 							</div>
 
 							<div>
 								<h3 className='font-medium flex items-center'>
 									<Clock className='h-4 w-4 mr-2 text-green-500' />
-									Manajemen waktu
+									Time Limit
 								</h3>
 								<p className='text-sm text-gray-600 dark:text-gray-200 ml-6'>
-									Setiap pertanyaan memiliki batas waktu tertentu. Pastikan untuk menjawab sebelum
-									waktu habis. Anda dapat melihat waktu tersisa di bagian atas layar. Jika waktu
-									habis, anda tidak akan bisa melanjutkan jawaban anda lagi.
+									Each question has a specific time limit. Be sure to answer before the time runs
+									out. You can see the remaining time at the top of the screen. If time runs out,
+									you won’t be able to continue your answer.
 								</p>
 							</div>
 
 							<div>
 								<h3 className='font-medium flex items-center'>
 									<TimerReset className='h-4 w-4 mr-2 text-green-500' />
-									Mengkoreksi jawaban
+									Editing Your Answers
 								</h3>
 								<p className='text-sm text-gray-600 dark:text-gray-200 ml-6'>
-									Anda akan disediakan form untuk mengoreksi jawaban hasil rekaman Anda. Anda juga
-									dapat mengulangi jawaban Anda jika perlu. Ini adalah kesempatan untuk memperbaiki
-									atau memperjelas jawaban Anda.
+									You will be provided with a form to review and edit your recorded answers. You may
+									also re-record your answers if needed. This is your opportunity to refine or
+									clarify your responses.
 								</p>
 							</div>
 
 							<div>
 								<h3 className='font-medium flex items-center'>
 									<BookOpen className='h-4 w-4 mr-2 text-green-500' />
-									Tinjau Jawaban Anda
+									Review Your Answers
 								</h3>
 								<p className='text-sm text-gray-600 dark:text-gray-200 ml-6'>
-									Setelah menyelesaikan wawancara, Anda dapat meninjau jawaban Anda. Ini adalah
-									peluang untuk belajar dari pengalaman dan meningkatkan keterampilan wawancara
-									Anda.
+									After completing the interview, you can review your responses. This is a valuable
+									opportunity to learn from the experience and improve your interview skills.
 								</p>
 							</div>
 						</div>
@@ -114,7 +112,7 @@ export default function Guidelines() {
 					<CardHeader className='pb-2'>
 						<CardTitle className='flex items-center'>
 							<AlertTriangle className='h-5 w-5 mr-2 text-amber-500' />
-							Perlu diingat
+							Please Note
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
@@ -122,29 +120,29 @@ export default function Guidelines() {
 							<li className='flex'>
 								<span className='mr-2'>•</span>
 								<span>
-									Ini adalah alat simulasi yang dirancang hanya untuk latihan dan tidak menjamin
-									keberhasilan wawancara.
+									This is a simulation tool designed solely for practice and does not guarantee
+									success in an actual interview.
 								</span>
 							</li>
 							<li className='flex'>
 								<span className='mr-2'>•</span>
 								<span>
-									Jawaban Anda akan disimpan sementara selama sesi berlangsung, namun tidak akan
-									tersimpan secara permanen setelah Anda keluar dari halaman ulasan.
+									Your answers will be stored temporarily during the session but will not be saved
+									permanently once you leave the review page. You can save by downloading the PDF.
 								</span>
 							</li>
 							<li className='flex'>
 								<span className='mr-2'>•</span>
 								<span>
-									Fitur perekaman mensimulasikan transkripsi dan mungkin tidak mencerminkan kualitas
-									layanan transkripsi wawancara yang sebenarnya.
+									The recording feature is not yet perfect and may not capture all your words
+									accurately.
 								</span>
 							</li>
 							<li className='flex'>
 								<span className='mr-2'>•</span>
 								<span>
-									Pertanyaan-pertanyaan yang ada merupakan contoh umum dan mungkin tidak sama persis
-									dengan apa yang akan Anda temui dalam wawancara yang sebenarnya.
+									The questions provided are general examples and may differ from those you
+									encounter in a real interview.
 								</span>
 							</li>
 						</ul>
@@ -155,41 +153,41 @@ export default function Guidelines() {
 					<CardHeader className='pb-2'>
 						<CardTitle className='flex items-center'>
 							<CheckCircle className='h-5 w-5 mr-2 text-green-500' />
-							Tips selama Simulasi Wawancara
+							Tips During the Interview Simulation
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<div className='grid md:grid-cols-2 gap-4'>
 							<div className='bg-green-50 p-3 rounded-md'>
-								<h3 className='text-sm font-medium text-green-800 mb-1'>Ringkas</h3>
+								<h3 className='text-sm font-medium text-green-800 mb-1'>Be Concise</h3>
 								<p className='text-xs text-gray-600'>
-									Tujukan jawaban yang jelas dan terfokus yang langsung menjawab pertanyaan tanpa
-									bertele-tele.
+									Give clear and focused answers that address the question directly without
+									unnecessary elaboration.
 								</p>
 							</div>
 
 							<div className='bg-green-50 p-3 rounded-md'>
-								<h3 className='text-sm font-medium text-green-800 mb-1'>Gunakan Metode STAR</h3>
+								<h3 className='text-sm font-medium text-green-800 mb-1'>Use the STAR Method</h3>
 								<p className='text-xs text-gray-600'>
-									Untuk pertanyaan-pertanyaan perilaku: Situasi, Tugas, Tindakan, Hasil. Susunlah
-									jawaban Anda untuk menunjukkan proses Anda.
+									For behavioral questions: Situation, Task, Action, Result. Structure your answers
+									to demonstrate your thought process.
 								</p>
 							</div>
 
 							<div className='bg-green-50 p-3 rounded-md'>
-								<h3 className='text-sm font-medium text-green-800 mb-1'>Perhatikan waktu</h3>
+								<h3 className='text-sm font-medium text-green-800 mb-1'>Watch the Time</h3>
 								<p className='text-xs text-gray-600'>
-									Perhatikan pengatur waktu untuk memastikan Anda tidak berbicara terlalu lama atau
-									terlalu singkat untuk setiap pertanyaan.
+									Keep an eye on the timer to ensure your responses are neither too long nor too
+									short for each question.
 								</p>
 							</div>
 
 							<div className='bg-green-50 p-3 rounded-md'>
-								<h3 className='text-sm font-medium text-green-800 mb-1'>Manfaatkan Tips</h3>
+								<h3 className='text-sm font-medium text-green-800 mb-1'>Utilize Tips</h3>
 								<p className='text-xs text-gray-600'>
-									Gunakan fitur tips (<HelpCircle className='h-3 w-3 inline' />) yang tersedia pada
-									setiap pertanyaan untuk membantu Anda memberikan jawaban terbaik dan lebih terarah
-									selama wawancara.
+									Utilize the tips feature (<HelpCircle className='h-3 w-3 inline' />) available on
+									each question to help you provide the best and most focused answers during the
+									interview.
 								</p>
 							</div>
 						</div>
@@ -197,11 +195,13 @@ export default function Guidelines() {
 				</Card>
 
 				<div className='flex justify-center'>
-					<Link href='/start'>
-						<Button className='bg-blue-500 text-white hover:bg-blue-600 border py-2 px-4 rounded font-medium text-sm'>
-							Mulai Simulasi Wawancara
-						</Button>
-					</Link>
+					<Button
+						asChild
+						size='lg'
+						className='bg-primary w-full hover:bg-primary/80 text-primary-foreground'
+					>
+						<Link href={'/start'}>Start Interview Simulation</Link>
+					</Button>
 				</div>
 			</div>
 		</div>
