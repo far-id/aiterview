@@ -196,3 +196,18 @@ html {
 .animate-grow-lift-up{
   @apply hover:scale-103 origin-bottom duration-300 transition-transform hover:-translate-y-1;
 }
+
+@media print {
+  body {
+    color: black;
+    background: white;
+
+  }
+  summary {
+    display: none;
+  }
+
+  button {
+    display: none;
+  }
+}

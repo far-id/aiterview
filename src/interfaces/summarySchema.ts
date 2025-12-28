@@ -1,12 +1,34 @@
-export interface SummarySchema {
-  technical: SummaryItemSchema[];
-  behavioral: SummaryItemSchema[];
-  situational: SummaryItemSchema[];
+export interface EvaluationSchema {
+  data: {
+    evaluationQuestions: EvaluationQuestion[];
+    summary: EvaluationSummary;
+  }
 }
 
-export interface SummaryItemSchema {
+export interface EvaluationQuestion {
   question: string;
   myAnswer: string;
-  feedback: string;
-  example: string;
+  strengths: string;
+  weaknesses: string;
+  improvementSuggestion: string;
+}
+
+export interface EvaluationSummary {
+  overall_candidate_summary: string;
+  competency_assessment: {
+    communication: CompetencyDetail;
+    integrity: CompetencyDetail;
+    people_development: CompetencyDetail;
+    result_oriented: CompetencyDetail;
+    teamwork: CompetencyDetail;
+  };
+}
+
+export type EvidenceQuality = "Strong" | "Limited" | "Insufficient";
+
+export interface CompetencyDetail {
+  assessment: string;
+  strengths_observed: string;
+  evidence_quality: EvidenceQuality;
+  notes: string;
 }

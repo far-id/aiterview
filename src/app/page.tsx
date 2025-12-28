@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import ThemeToggle from '@/components/app/theme-toggle';
-import { AudioLines, CircleCheck, File, Mic, Pause, Play, Sparkle, Sparkles } from 'lucide-react';
+import { AudioLines, CircleCheck, Mic, Pause, Play, Sparkle, Sparkles } from 'lucide-react';
 
 export default function Home() {
 	return (

@@ -9,9 +9,8 @@ import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useConversationContext } from '@/context/conversationContext';
-import useSummary from '@/hooks/useSummary';
 import { Conversation } from '@/interfaces/conversations';
-import { formatSecondsToMMSS } from '@/lib/utils';
+import { cn, formatSecondsToMMSS } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ChevronRight, Home, Hourglass, TimerReset } from 'lucide-react';
 import Link from 'next/link';
@@ -32,7 +31,7 @@ export default function Page() {
 	const [progressPercentage, setprogressPercentage] = useState<number>(100);
 	const { conversations, addConversation, lastConversation } = useConversationContext();
 	const [interviewQuestion, setInterviewQuestion] = useState<Conversation>();
-	const { storeSummary } = useSummary();
+	const [submitting, setSubmitting] = useState<boolean>(false);
 	const router = useRouter();
 
 	const form = useForm<z.infer<typeof aswerSchema>>({
@@ -55,11 +54,9 @@ export default function Page() {
 		form.reset();
 	}
 
-	function handleSubmitAnswer(data: z.infer<typeof aswerSchema>) {
-		console.log(data.answer);
-	}
-
 	async function nextQuestionHandler() {
+		setSubmitting(true);
+		setOnRecording(false);
 		if (form.getValues('answer').length < 2) {
 			toast.error('We need your answer', {
 				duration: 10000,
@@ -69,6 +66,7 @@ export default function Page() {
 		if (currentQuestionIndex < 8) {
 			// go to next question
 			try {
+				console.log('conversations before adding:', conversations);
 				const response = await fetch('/api/questions', {
 					method: 'POST',
 					headers: {
@@ -77,7 +75,7 @@ export default function Page() {
 					body: JSON.stringify({
 						conversations: conversations.map((message) => ({
 							role: message.role,
-							text: message.message,
+							text: message.text,
 							category: message.category,
 						})),
 						answer: form.getValues('answer'),
@@ -95,20 +93,19 @@ export default function Page() {
 						const { message } = data;
 						addConversation({
 							role: 'user',
-							message: form.getValues('answer'),
-							timeLeft: timeLeft,
+							text: form.getValues('answer'),
 						});
 
 						addConversation({
 							role: 'model',
-							message: message.question,
+							text: message.question,
 							category: message.category,
 							tips: message.tips,
 						});
 
 						setInterviewQuestion({
 							role: 'model',
-							message: message.question,
+							text: message.question,
 							category: message.category,
 							tips: message.tips,
 						});
@@ -128,52 +125,14 @@ export default function Page() {
 			}
 		} else {
 			// go to summary page
-			try {
-				const response = await fetch('/api/summary', {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						conversations: conversations.map((message) => ({
-							role: message.role,
-							text: message.message,
-							category: message.category,
-						})),
-						answer: form.getValues('answer'),
-					}),
-				});
-				if (!response.ok) {
-					throw new Error('Failed to fetch summary');
-				}
-				response.json().then((data) => {
-					if (data.error) {
-						alert(data.error);
-					} else {
-						const { message } = data;
-						addConversation({
-							role: 'user',
-							message: form.getValues('answer'),
-							timeLeft: timeLeft,
-						});
+			addConversation({
+				role: 'user',
+				text: form.getValues('answer'),
+			});
 
-						storeSummary({
-							technical: message.technical,
-							behavioral: message.behavioral,
-							situational: message.situational,
-						});
-
-						router.push('/summary');
-					}
-				});
-			} catch (error) {
-				// removeLastConversation();
-				console.error('Error:', error);
-				toast.error('Failed to fetch summary. Please try again.', {
-					duration: 10000,
-				});
-			}
+			router.push('/summary');
 		}
+		setSubmitting(false);
 	}
 
 	// Timer logic
@@ -206,7 +165,6 @@ export default function Page() {
 	useEffect(() => {
 		setInterviewQuestion(lastConversation);
 		setCurrentQuestionIndex(Math.ceil(conversations.length / 2));
-		console.log('conversations interviewpage: ', conversations);
 	}, [conversations, lastConversation]);
 
 	return (
@@ -241,7 +199,12 @@ export default function Page() {
 							<TooltipProvider>
 								<Tooltip>
 									<TooltipTrigger onClick={resetHandler}>
-										<TimerReset className='h-5 w-5 text-gray-400 hover:text-gray-600' />
+										<TimerReset
+											className={cn(
+												'h-5 w-5 text-gray-400 hover:text-gray-600',
+												timeLeft === 0 && 'text-foreground animate-pulse'
+											)}
+										/>
 									</TooltipTrigger>
 									<TooltipContent>
 										<p className='max-w-xs text-sm'>Reset</p>
@@ -252,15 +215,12 @@ export default function Page() {
 					</CardHeader>
 					<CardContent>
 						<Form {...form}>
-							<form
-								onSubmit={form.handleSubmit(handleSubmitAnswer)}
-								className='flex flex-col gap-4'
-							>
+							<form className='flex flex-col gap-4'>
 								<FormField
 									control={form.control}
 									name='answer'
 									render={({ field }) => (
-										<FormItem className='flex flex-col border border-gray-600 rounded gap-2'>
+										<FormItem className='flex flex-col'>
 											<FormControl>
 												<Textarea
 													rows={4}
@@ -284,7 +244,7 @@ export default function Page() {
 					<Button
 						onClick={nextQuestionHandler}
 						className='cursor-pointer'
-						disabled={onRecording || form.getValues('answer').length < 2}
+						disabled={onRecording || form.getValues('answer').length < 2 || submitting}
 					>
 						{currentQuestionIndex < 8 ? (
 							<>

@@ -1,96 +1,193 @@
 'use server';
 import { NextRequest } from 'next/server';
-import { GoogleGenAI, Type } from "@google/genai";
+import { Type } from "@google/genai";
 import { normalizeConversationText } from '@/lib/utils';
+import { sendGemini } from '@/lib/sendGemini';
 
 export async function POST(request: NextRequest) {
-  if (!process.env.GEMINI_API_KEY) {
-    return new Response(JSON.stringify({ error: 'Gemini API key is not set' }), { status: 500 });
-  }
-
-  const { conversations, answer } = await request.json();
-  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-  const history = [
-    ...conversations.map((message: { role: string, text: string, category?: string }) => ({
-      role: message.role,
-      parts: [{
-        text:
-          message.role === 'model' ?
-            `${normalizeConversationText(message.text)} [Kategori: ${message.category ?? 'unknown'}]` :
-            normalizeConversationText(message.text)
-      }],
-    })),
-    {
-      role: 'user',
-      parts: [{ text: normalizeConversationText(answer) }],
+  const { conversations, language } = await request.json();
+  let history = conversations.map((message: { role: string, text: string, category: string | null }) => ({
+    role: message.role,
+    parts: [{
+      text:
+        message.category ?
+          `${normalizeConversationText(message.text)} [Kategori: ${message.category}]` :
+          normalizeConversationText(message.text)
+    }],
+  }));
+  const answer = history.pop()?.parts[0].text || '';
+  const evaluationQuestionsConfigResponseSchema = {
+    type: Type.ARRAY,
+    items: {
+      type: Type.OBJECT,
+      properties: {
+        question: { type: Type.STRING },
+        myAnswer: { type: Type.STRING },
+        strengths: { type: Type.STRING },
+        weaknesses: { type: Type.STRING },
+        improvementSuggestion: { type: Type.STRING },
+      },
+      propertyOrdering: ["question", "myAnswer", "strengths", "weaknesses", "improvementSuggestion"]
     }
-  ];
-
-  const config = {
-    responseMimeType: "application/json",
-    responseSchema: {
-      type: Type.ARRAY,
-      items: {
+  }
+  const summaryConfigResponseSchema = {
+    type: Type.OBJECT,
+    properties: {
+      overall_candidate_summary: { type: Type.STRING },
+      competency_assessment: {
         type: Type.OBJECT,
         properties: {
-          question: { type: Type.STRING },
-          myAnswer: { type: Type.STRING },
-          feedback: { type: Type.STRING },
-          example: { type: Type.STRING }
-        },
-        required: ["question", "myAnswer", "feedback", "example"],
-        propertyOrdering: ["question", "myAnswer", "feedback", "example"],
+          teamwork: {
+            type: Type.OBJECT,
+            properties: {
+              assessment: { type: Type.STRING },
+              strengths_observed: { type: Type.STRING },
+              evidence_quality: { type: Type.STRING, enum: ["Strong", "Limited", "Insufficient"] },
+              notes: { type: Type.STRING },
+            }
+          },
+          result_oriented: {
+            type: Type.OBJECT,
+            properties: {
+              assessment: { type: Type.STRING },
+              strengths_observed: { type: Type.STRING },
+              evidence_quality: { type: Type.STRING, enum: ["Strong", "Limited", "Insufficient"] },
+              notes: { type: Type.STRING },
+            }
+          },
+          communication: {
+            type: Type.OBJECT,
+            properties: {
+              assessment: { type: Type.STRING },
+              strengths_observed: { type: Type.STRING },
+              evidence_quality: { type: Type.STRING, enum: ["Strong", "Limited", "Insufficient"] },
+              notes: { type: Type.STRING },
+            }
+          },
+          integrity: {
+            type: Type.OBJECT,
+            properties: {
+              assessment: { type: Type.STRING },
+              strengths_observed: { type: Type.STRING },
+              evidence_quality: { type: Type.STRING, enum: ["Strong", "Limited", "Insufficient"] },
+              notes: { type: Type.STRING },
+            }
+          },
+          people_development: {
+            type: Type.OBJECT,
+            properties: {
+              assessment: { type: Type.STRING },
+              strengths_observed: { type: Type.STRING },
+              evidence_quality: { type: Type.STRING, enum: ["Strong", "Limited", "Insufficient"] },
+              notes: { type: Type.STRING },
+            }
+          },
+        }
       }
-    }
-  }
-
-  const technicalChat = ai.chats.create({
-    model: "gemini-2.5-flash-preview-05-20",
-    history: history,
-    config: config,
-  });
-  const behavioralChat = ai.chats.create({
-    model: "gemini-2.0-flash",
-    history: history,
-    config: config,
-  });
-  const situationalChat = ai.chats.create({
-    model: "gemini-2.0-flash",
-    history: history,
-    config: config,
-  });
-
-  let parsedResponse: any = {};
-
-  const technicalPrompt = `Berikan penilaian atau feedback yang komprehensif dengan prinsip Behavioral Event Interview(BEI) untuk masing masing jawaban saya pada pertanyaan berkategori [technical].
-  Hanya berikan feedback untuk pertanyaan dengan kategori technical. Abaikan atau kosongkan kategori behavioral dan situational.
-  Berikan response dalam format JSON yang telah ditentukan. [question] berisi string pertanyaan yang telah diajukan, [myAnswer] berisi jawaban saya, [feedback] berisi penilaian atau feedback yang komprehensif dari kamu atas jawaban saya, dan [example] berisi contoh jawaban yang baik sesuai feedback yang kamu berikan, panjang [example] harus cukup pendek agar bisa dijawab dalam waktu kurang dari 2 menit. pada example, berikan contoh jawaban yang natural, yang bisa dijawab dengan lisan atau ucapan.
-  gunakan bahasa indonesia.`;
-  const behavioralPrompt = `Berikan penilaian atau feedback yang komprehensif dengan prinsip Behavioral Event Interview(BEI) untuk masing masing jawaban saya pada pertanyaan berkategori [behavioral].
-  Hanya berikan feedback untuk pertanyaan dengan kategori behavioral. Abaikan atau kosongkan kategori technical dan situational.
-  Berikan response dalam format JSON yang telah ditentukan. [question] berisi string pertanyaan yang telah diajukan, [myAnswer] berisi jawaban saya, [feedback] berisi penilaian atau feedback yang komprehensif dari kamu atas jawaban saya, dan [example] berisi contoh jawaban yang baik sesuai feedback yang kamu berikan, panjang [example] harus cukup pendek agar bisa dijawab dalam waktu kurang dari 2 menit. pada example, berikan contoh jawaban yang natural, yang bisa dijawab dengan lisan atau ucapan.
-  gunakan bahasa indonesia.`;
-  const situationalPrompt = `Berikan penilaian atau feedback yang komprehensif dengan prinsip Behavioral Event Interview(BEI) untuk masing masing jawaban saya pada pertanyaan berkategori [situational].
-  Hanya berikan feedback untuk pertanyaan dengan kategori situational. Abaikan atau kosongkan kategori technical dan situational.
-  Berikan response dalam format JSON yang telah ditentukan. [question] berisi string pertanyaan yang telah diajukan, [myAnswer] berisi jawaban saya, [feedback] berisi penilaian atau feedback yang komprehensif dari kamu atas jawaban saya, dan [example] berisi contoh jawaban yang baik sesuai feedback yang kamu berikan, panjang [example] harus cukup pendek agar bisa dijawab dalam waktu kurang dari 2 menit. pada example, berikan contoh jawaban yang natural, yang bisa dijawab dengan lisan atau ucapan.
-  gunakan bahasa indonesia.`;
+    },
+    propertyOrdering: ["overall_candidate_summary", "competency_assessment"],
+  };
 
   try {
-    const { text: technicalFeednack } = await technicalChat.sendMessage({
-      message: technicalPrompt,
-    });
-    const { text: behavioralFeednack } = await behavioralChat.sendMessage({
-      message: behavioralPrompt,
-    });
-    const { text: situationalFeednack } = await situationalChat.sendMessage({
-      message: situationalPrompt,
-    });
+    console.log("Sending data to Gemini for evaluation questions...");
+    const evaluationQuestions = await sendGemini("gemini-3-flash-preview", answer, history, evaluationQuestionsConfigResponseSchema);
 
-    parsedResponse = {
-      technical: JSON.parse(technicalFeednack ?? '[]'),
-      behavioral: JSON.parse(behavioralFeednack ?? '[]'),
-      situational: JSON.parse(situationalFeednack ?? '[]'),
+    history = [
+      ...history,
+      {
+        role: 'user',
+        parts: [{ text: normalizeConversationText(answer) }],
+      },
+      {
+        role: 'model',
+        parts: [{ text: normalizeConversationText(evaluationQuestions ?? '') }],
+      }
+    ]
+
+    const prompt = `
+    You are an experienced HR and Technical Interviewer evaluating a Software Engineer candidate based on a Behavioral Event Interview (BEI), using ${language} language.
+
+Return the response strictly in JSON format.
+
+You are provided with:
+- The full interview transcript
+- The per-question evaluation results, including identified weaknesses and improvement_suggestions
+
+Your task is to critically assess the candidate’s competencies using ONLY the available evidence, while explicitly considering the quality, consistency, and credibility of the answers.
+
+Competencies to Assess:
+- Teamwork
+- Result Oriented
+- Communication
+- Integrity
+- People Development
+
+Assessment Guidelines (STRICT):
+- Prioritize BEI-compliant answers that describe real past behavior with clear actions and outcomes.
+- If most supporting answers are marked as Partial or No, the competency MUST be rated as "Limited" or "Insufficient".
+- Do NOT compensate weak evidence with assumptions, intentions, or hypothetical potential.
+- Explicitly point out gaps, vague answers, missing outcomes, or lack of ownership.
+- Use technical answers only to evaluate reasoning, decision-making, and applied knowledge — NOT coding ability.
+- Use situational answers as secondary indicators ONLY and clearly label them as hypothetical.
+- If a competency lacks clear behavioral evidence, state this clearly and directly.
+- Do NOT fabricate, infer, or soften conclusions beyond what is stated in the data.
+- Maintain a professional, objective, and critical HR tone similar to real hiring evaluations.
+
+Be more critical than supportive.
+Clarity and honesty are more important than encouragement.
+
+Output Format:
+{
+  "overall_candidate_summary": "",
+  "competency_assessment": {
+    "teamwork": {
+      "assessment": "",
+      "strengths_observed": "",
+      "evidence_quality": "Strong | Limited | Insufficient",
+      "notes": ""
+    },
+    "result_oriented": {
+      "assessment": "",
+      "strengths_observed": "",
+      "evidence_quality": "Strong | Limited | Insufficient",
+      "notes": ""
+    },
+    "communication": {
+      "assessment": "",
+      "strengths_observed": "",
+      "evidence_quality": "Strong | Limited | Insufficient",
+      "notes": ""
+    },
+    "integrity": {
+      "assessment": "",
+      "strengths_observed": "",
+      "evidence_quality": "Strong | Limited | Insufficient",
+      "notes": ""
+    },
+    "people_development": {
+      "assessment": "",
+      "strengths_observed": "",
+      "evidence_quality": "Strong | Limited | Insufficient",
+      "notes": ""
     }
+  }
+}`;
+
+    console.log("Sending data to Gemini for summary...");
+    const summary = await sendGemini("gemini-3-flash-preview", prompt, history, summaryConfigResponseSchema);
+    console.log("All responses received from Gemini.");
+    return new Response(
+      JSON.stringify({
+        data: {
+          evaluationQuestions,
+          summary
+        }
+      }),
+      {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
   } catch (error) {
     const errorCode = (error as { code?: number }).code;
     if (errorCode === 500 || errorCode === 501 || errorCode === 502 || errorCode === 503 || errorCode === 504) {
@@ -100,12 +197,4 @@ export async function POST(request: NextRequest) {
       return new Response(JSON.stringify({ error: 'Terjadi kesalahan' }), { status: 500 });
     }
   }
-
-  return new Response(
-    JSON.stringify({ message: parsedResponse }),
-    {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    }
-  );
 }

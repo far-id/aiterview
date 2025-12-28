@@ -30,7 +30,7 @@ const QuestionCard = (question: Conversation) => {
 				)}
 			</CardHeader>
 			<CardContent className='pt-0'>
-				<h2 className='text-xl font-semibold mb-2'>{question?.message}</h2>
+				<h2 className='text-xl font-semibold mb-2'>{question?.text}</h2>
 			</CardContent>
 		</Card>
 	);

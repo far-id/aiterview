@@ -20,11 +20,11 @@ export async function sendGemini(model: string, prompt: string, history: any[], 
 
     try {
       const { text } = await chat.sendMessage({ message: prompt });
-      return JSON.parse(text?.match(/{[\s\S]*}/)?.[0] || "{}");
+      return text;
     } catch (err: any) {
-      console.error("🔥 Gemini Error:", err);
+      console.error("🔥 Gemini Error:", err, "endnya disini",);
 
-      if (err.code === 429 || err.status === 429) {
+      if (err.message.includes("429")) {
         console.log("429 Rate Limit, Rotating key...");
         await rotateKey();
         attempts--;

@@ -1,262 +1,215 @@
 'use client';
-import QuestionCard from '@/components/app/question-card';
-import { SummaryPDF } from '@/components/app/summaryPdf';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { SummarySchema } from '@/interfaces/summarySchema';
-import dynamic from 'next/dynamic';
-import { ChevronLeft, ChevronRight, Redo, Home, Download } from 'lucide-react';
 
-// Dynamically import PDFDownloadLink to avoid SSR issues
-const PDFDownloadLink = dynamic(
-	() => import('@react-pdf/renderer').then((mod) => mod.PDFDownloadLink),
-	{ ssr: false }
-);
+import CompetencyAssessment from '@/components/app/competency-assessment';
+import QuestionEvaluation from '@/components/app/question-evaluation';
+import ThemeToggle from '@/components/app/theme-toggle';
+import { useIsMobile } from '@/hooks/useIsMobile';
+import useSummary from '@/hooks/useSummary';
+import {
+	EvaluationQuestion,
+	EvaluationSchema,
+	EvaluationSummary,
+} from '@/interfaces/summarySchema';
+import { Icon } from '@iconify/react';
+import { RotateCcw, Sparkles } from 'lucide-react';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-
-const dummySummary: SummarySchema = {
-	technical: [
-		{
-			question: 'What is your greatest strength?',
-			myAnswer: 'I am a quick learner and adapt well to new technologies.',
-			feedback: 'Your answer was clear and concise.',
-			example: 'Try to provide a specific example.',
-		},
-		{
-			question: 'What is your greatest weakness?',
-			myAnswer: 'I am a quick learner and adapt well to new technologies.',
-			feedback: 'You acknowledged a real weakness.',
-			example: 'Discuss how you are working to improve it.',
-		},
-		{
-			question: 'Why do you want to work here?',
-			myAnswer: 'I am a quick learner and adapt well to new technologies.',
-			feedback: 'Your answer showed good research about the company.',
-			example: 'Add more personal motivation.',
-		},
-		{
-			question: 'Where do you see yourself in 5 years?',
-			myAnswer: 'I am a quick learner and adapt well to new technologies.',
-			feedback: 'Your answer was realistic and ambitious.',
-			example: "Align it more with the company's goals.",
-		},
-	],
-	behavioral: [
-		{
-			question: 'Describe a time you faced a challenge at work.',
-			myAnswer: 'I am a quick learner and adapt well to new technologies.',
-			feedback: 'You provided a good example.',
-			example: 'Add more details about the outcome.',
-		},
-	],
-	situational: [
-		{
-			question: 'How would you handle a difficult coworker?',
-			myAnswer: 'I am a quick learner and adapt well to new technologies.',
-			feedback: 'Your approach was reasonable.',
-			example: 'Consider discussing it with your manager.',
-		},
-	],
-};
+import { toast } from 'sonner';
 
 export default function Summary() {
-	const [currentCategory, setCurrentCategory] = useState<keyof SummarySchema>('technical');
-	const [currentIndex, setCurrentIndex] = useState(0);
-	const [summary, setSummary] = useState<SummarySchema>(dummySummary); // Initialize with dummy data
+	const [evaluationQuestions, setEvaluationQuestions] = useState<EvaluationQuestion[]>([]);
+	const [summary, setSummary] = useState<EvaluationSummary | null>(null);
+	const isMobile = useIsMobile();
+	const [isExporting, setIsExporting] = useState(false);
+	const { storeSummary } = useSummary();
+	const router = useRouter();
+
+	const download = () => {
+		setIsExporting(true);
+		setTimeout(() => {
+			window.print();
+			setIsExporting(false);
+		}, 800);
+	};
 
 	useEffect(() => {
-		const storedSummary = window.sessionStorage.getItem('summary');
-		if (storedSummary) {
-			setSummary(JSON.parse(storedSummary));
-		} else {
-			redirect('/start'); // Redirect if no summary is found
-		}
+		const sessionSummary = sessionStorage.getItem('summary');
+		if (sessionSummary) {
+			const parsedSummary = JSON.parse(sessionSummary);
+			setSummary(JSON.parse(parsedSummary.data.summary));
+			setEvaluationQuestions(JSON.parse(parsedSummary.data.evaluationQuestions));
+			return;
+		} // already fetched
+		if(!sessionStorage.getItem('conversation')) router.push('/start'); // no conversation, redirect to start
+		const conversations = sessionStorage.getItem('conversation');
+		if (!conversations) return;
+		const parsedConversations = JSON.parse(conversations);
+		const fetchSummary = async () => {
+			try {
+				const response = await fetch('/api/summary', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({
+						conversations: parsedConversations.map((message) => ({
+							role: message.role,
+							text: message.text,
+							category: message.category,
+						})),
+					}),
+				});
+				const data = await response.json();
+
+				storeSummary(data);
+				setSummary(JSON.parse(data.data.summary));
+				setEvaluationQuestions(JSON.parse(data.data.evaluationQuestions));
+			} catch (error) {
+				console.error('Error fetching summary:', error);
+				toast.error('Error fetching summary, please refresh the page.', {
+					duration: 10000,
+				});
+			}
+		};
+
+		fetchSummary();
 	}, []);
 
-	const navigateToNext = () => {
-		if (currentIndex < summary[currentCategory].length - 1) {
-			setCurrentIndex(currentIndex + 1);
-		} else {
-			//move to the next category
-			const categories = Object.keys(summary) as Array<keyof SummarySchema>;
-			const currentCategoryIndex = categories.indexOf(currentCategory);
-			if (currentCategoryIndex < categories.length - 1) {
-				setCurrentCategory(categories[currentCategoryIndex + 1]);
-				setCurrentIndex(0);
-			}
-		}
-	};
-
-	const navigateToPrevious = () => {
-		if (currentIndex > 0) {
-			setCurrentIndex(currentIndex - 1);
-		} else {
-			//move to the previous category
-			const categories = Object.keys(summary) as Array<keyof SummarySchema>;
-			const currentCategoryIndex = categories.indexOf(currentCategory);
-			if (currentCategoryIndex > 0) {
-				setCurrentCategory(categories[currentCategoryIndex - 1]);
-				setCurrentIndex(summary[categories[currentCategoryIndex - 1]].length - 1);
-			}
-		}
-	};
+	useEffect(() => {
+		// Trigger a re-render when isExporting changes
+	}, [isExporting]);
 
 	return (
-		<div className='min-h-screen bg-backgorund'>
-			<div className='container max-w-4xl mx-auto px-4 py-8'>
-				<div className='flex items-center justify-between mb-6'>
-					<h1 className='text-2xl font-bold'>Interview Summary</h1>
-					<div className='flex items-center space-x-2'>
-						<Button variant='outline' asChild>
-							<Link href='/'>
-								<Home className='h-4 w-4 mr-1' />
-								Home
-							</Link>
-						</Button>
-						<Button onClick={() => redirect('/start')}>
-							<Redo className='h-4 w-4 mr-1' />
-							New Interview
-						</Button>
-					</div>
-				</div>
-
-				<div className='bg-background rounded-lg shadow-sm border overflow-hidden mb-6'>
-					<div className='p-4 border-b bg-background'>
-						<div className='flex justify-between items-center'>
-							<div className='flex items-center space-x-2'>
-								<Button
-									variant={currentCategory === 'technical' ? 'default' : 'outline'}
-									onClick={() => setCurrentCategory('technical')}
-								>
-									Technical ({summary.technical.length})
-								</Button>
-								<Button
-									variant={currentCategory === 'behavioral' ? 'default' : 'outline'}
-									onClick={() => setCurrentCategory('behavioral')}
-								>
-									Behavioral ({summary.behavioral.length})
-								</Button>
-								<Button
-									variant={currentCategory === 'situational' ? 'default' : 'outline'}
-									onClick={() => setCurrentCategory('situational')}
-								>
-									Situational ({summary.situational.length})
-								</Button>
-							</div>
-							<PDFDownloadLink
-								title='Download Interview Summary'
-								className='border rounded-sm p-2'
-								document={<SummaryPDF {...summary} />}
-								fileName='interview-feedback.pdf'
-							>
-								<Download className='w-5 h-5' />
-							</PDFDownloadLink>
-						</div>
-						<Separator className='my-3' />
-						<div className='flex items-center justify-between gap-y-2'>
-							<h3 className='font-medium'>
-								Question {currentIndex + 1} of {summary[currentCategory].length} in{' '}
-								{currentCategory} category
-							</h3>
-							<div className='flex items-center space-x-2'>
-								<Button
-									variant='outline'
-									size='sm'
-									onClick={navigateToPrevious}
-									disabled={currentIndex === 0 && currentCategory === 'technical'}
-								>
-									<ChevronLeft className='h-4 w-4' />
-								</Button>
-								<Button
-									variant='outline'
-									size='sm'
-									onClick={navigateToNext}
-									disabled={
-										currentIndex === summary[currentCategory].length - 1 &&
-										currentCategory === 'situational'
-									}
-								>
-									<ChevronRight className='h-4 w-4' />
-								</Button>
+		<div className='min-h-screen bg-background flex-1 '>
+			<div className='mx-auto max-w-6xl py-8 space-y-8'>
+				<div className='flex flex-col justify-between gap-4 md:flex-row md:items-end'>
+					<div className='space-y-2'>
+						<div className='flex items-center gap-2 justify-between'>
+							<span className='inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-900/30 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:text-blue-300'>
+								<span className='material-symbols-outlined mr-1 text-[14px]'>
+									<Sparkles fill='currentColor' className='h-4 w-4 text-blue-400' />
+								</span>{' '}
+								AI Evaluation
+							</span>
+							<div className='md:hidden'>
+								<ThemeToggle />
 							</div>
 						</div>
+						<h1 className='text-3xl font-extrabold tracking-tight text-[#111418] dark:text-white md:text-4xl'>
+							Interview Summary
+						</h1>
+						<p className='text-base text-[#617289] dark:text-[#9ca3af]'>
+							Results of your interview simulation evaluation
+						</p>
 					</div>
+					<div className='flex gap-3 flex-col'>
+						<div className='md:flex hidden justify-end'>
+							<ThemeToggle />
+						</div>
 
-					<div className='p-6'>
-						{summary[currentCategory][currentIndex] && (
-							<>
-								<QuestionCard
-									role='model'
-									message={summary[currentCategory][currentIndex].question}
-								/>
-
-								<Card className='mb-6 bg-gray-50 dark:bg-gray-800 '>
-									<CardHeader className='flex flex-row items-center justify-between py-3'>
-										<h3 className='text-lg font-medium'>Your Answer</h3>
-									</CardHeader>
-									<CardContent className='pt-0'>
-										<p className='text-md font-medium mb-2'>
-											{summary[currentCategory][currentIndex].myAnswer}
-										</p>
-									</CardContent>
-								</Card>
-
-								<Card className='mb-6 bg-gray-50 dark:bg-gray-800'>
-									<CardHeader className='flex flex-row items-center justify-between py-3'>
-										<h3 className='text-lg font-medium'>AI Feedback</h3>
-									</CardHeader>
-									<CardContent className='pt-0 gap-4 flex flex-col'>
-										<Card className=' shadow-md hover:shadow-lg transition-shadow duration-300 ease-in-out'>
-											<CardHeader className='flex flex-row items-center justify-between py-3'>
-												<h3 className='text-lg font-medium'>Feedback</h3>
-											</CardHeader>
-											<CardContent className='pt-0'>
-												<p className='text-md font-medium mb-2'>
-													{summary[currentCategory][currentIndex].feedback}
-												</p>
-											</CardContent>
-										</Card>
-										<Card className=' shadow-md hover:shadow-lg transition-shadow duration-300 ease-in-out'>
-											<CardHeader className='flex flex-row items-center justify-between py-3'>
-												<h3 className='text-lg font-medium'>Example Answer</h3>
-											</CardHeader>
-											<CardContent className='pt-0'>
-												<p className='text-md font-medium mb-2'>
-													{summary[currentCategory][currentIndex].example}
-												</p>
-											</CardContent>
-										</Card>
-									</CardContent>
-								</Card>
-							</>
-						)}
+						<button
+							onClick={download}
+							className='flex items-center gap-2 rounded-lg border border-[#d1d5db] bg-white px-4 py-2 text-sm font-medium text-[#374151] hover:bg-[#f9fafb] dark:border-[#4b5563] dark:bg-[#1f2937] dark:text-white dark:hover:bg-[#374151]'
+						>
+							<span className='material-symbols-outlined text-[18px]'>
+								<svg xmlns='http://www.w3.org/2000/svg' width={24} height={24} viewBox='0 0 24 24'>
+									<path
+										fill='currentColor'
+										d='m12 16l-5-5l1.4-1.45l2.6 2.6V4h2v8.15l2.6-2.6L17 11zm-6 4q-.825 0-1.412-.587T4 18v-3h2v3h12v-3h2v3q0 .825-.587 1.413T18 20z'
+									></path>
+								</svg>
+							</span>{' '}
+							Download Summary
+						</button>
 					</div>
 				</div>
-
-				<div className='flex justify-between'>
-					<Button
-						onClick={navigateToPrevious}
-						disabled={currentIndex === 0 && currentCategory === 'technical'}
-					>
-						<ChevronLeft className='h-4 w-4 mr-1' />
-						Previous
-					</Button>
-					<div className='flex items-center space-x-2'>
-						{currentIndex === summary[currentCategory].length - 1 &&
-						currentCategory === 'situational' ? (
-							<Button onClick={() => redirect('/start')}>
-								<Redo className='h-4 w-4 mr-1' />
-								New Interview
-							</Button>
-						) : (
-							<Button onClick={navigateToNext}>
-								Next
-								<ChevronRight className='h-4 w-4 ml-1' />
-							</Button>
-						)}
+				<div className='relative overflow-hidden rounded-xl bg-white shadow-card dark:bg-[#151f2b]'>
+					<div className='absolute left-0 top-0 h-full w-1.5 bg-primary' />
+					<div className='flex flex-col gap-6 p-6 md:flex-row md:items-start md:p-8'>
+						<div className='flex-1 space-y-4'>
+							<div className='flex items-center gap-2'>
+								<div className='flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary'>
+									<Icon icon='ooui:text-summary-ltr' />
+								</div>
+								<h3 className='text-lg font-bold text-[#111418] dark:text-white'>
+									Overall Candidate Summary
+								</h3>
+							</div>
+							<p className='text-base leading-relaxed text-[#4b5563] dark:text-[#d1d5db]'>
+								{summary?.overall_candidate_summary}
+							</p>
+						</div>
+					</div>
+				</div>
+				<div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5'>
+					{summary && (
+						<>
+							<CompetencyAssessment
+								competencyAssessment={summary.competency_assessment.communication}
+							/>
+							<CompetencyAssessment
+								competencyAssessment={summary.competency_assessment.integrity}
+							/>
+							<CompetencyAssessment
+								competencyAssessment={summary.competency_assessment.people_development}
+							/>
+							<CompetencyAssessment
+								competencyAssessment={summary.competency_assessment.result_oriented}
+							/>
+							<CompetencyAssessment competencyAssessment={summary.competency_assessment.teamwork} />
+						</>
+					)}
+				</div>
+				<div className='space-y-4'>
+					<div className='flex items-center justify-between'>
+						<h3 className='text-xl font-bold text-[#111418] dark:text-white'>
+							Question Evaluation
+						</h3>
+					</div>
+					{evaluationQuestions.length > 0 &&
+						evaluationQuestions.map((questionEvaluation, index) => (
+							<QuestionEvaluation
+								key={questionEvaluation.question}
+								questionEvaluation={questionEvaluation}
+								index={index}
+								open={isExporting || isMobile || index === 0}
+							/>
+						))}
+				</div>
+				<div className='sticky bottom-4 z-40 mt-12 print:hidden'>
+					{/* Mobile Practice Again Button */}
+					<div className='flex md:hidden w-full flex-col gap-3 justify-end'>
+						<Link
+							href={'/start'}
+							className='flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-bold text-white shadow-md hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary'
+						>
+							<span className='material-symbols-outlined text-[20px]'>
+								<RotateCcw />
+							</span>{' '}
+							Practice Again
+						</Link>
+					</div>
+				</div>
+				<div className='hidden print:hidden items-center justify-between gap-4 md:flex md:flex-row p-4 rounded-xl border border-[#e5e7eb] bg-white/90 shadow-lg backdrop-blur-md dark:border-[#2a3441] dark:bg-[#151f2b]/90 md:relative md:bottom-0 md:bg-transparent md:shadow-none md:backdrop-blur-none'>
+					<div className='block'>
+						<h4 className='text-base font-bold text-[#111418] dark:text-white'>
+							Ready for the next step?
+						</h4>
+						<p className='text-sm text-[#617289] dark:text-[#9ca3af]'>
+							Review your weak points and try again.
+						</p>
+					</div>
+					<div className='flex w-full flex-col gap-3 sm:flex-row md:w-auto'>
+						<Link
+							href={'/start'}
+							className='flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-bold text-white shadow-md hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary'
+						>
+							<span className='material-symbols-outlined text-[20px]'>
+								<RotateCcw />
+							</span>{' '}
+							Practice Again
+						</Link>
 					</div>
 				</div>
 			</div>

@@ -8,9 +8,9 @@ export async function POST(request: NextRequest) {
   const { position, jobDescription, language } = body;
 
   const prompt = `
-    you are an expert interviewer fluent in ${language}, highly experienced, adaptive, and skilled at eliciting deep, structured responses from candidates
+    you are an expert interviewer fluent in ${language}, highly experienced, adaptive, and skilled at eliciting deep, structured responses from candidates to evaluating a Software Engineer candidate
     use behavioral event interviewing BEI and format follow ups using STAR or SAR or CAR where appropriate
-    produce a total of 8 questions across the categories technical behavioral situational
+    produce a total of 8 questions across the categories [technical, behavioral, situational]
     technical aims to assess the candidate technical knowledge and skills relevant to the applied role
     behavioral aims to explore how the candidate handled past situations to predict future behavior
     situational aims to assess how the candidate would handle hypothetical workplace situations
@@ -41,7 +41,6 @@ export async function POST(request: NextRequest) {
       },
       propertyOrdering: ["question", "category", "tips"],
     });
-    console.log('Received response:', response);
 
     return new Response(
       JSON.stringify({ prompt, message: response }),
@@ -52,7 +51,7 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     const errorCode = (error as { code?: number }).code;
-    console.error('Error parsing response:', error);
+    console.error(errorCode, 'Error parsing response:', error);
 
     return new Response(JSON.stringify({ error: `Error Occured on Server (code: ${errorCode})` }), { status: errorCode });
   }

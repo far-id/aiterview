@@ -8,6 +8,7 @@ const redis = new Redis({
 const GEMINI_KEYS = [
   process.env.GEMINI_API_KEY_1,
   process.env.GEMINI_API_KEY_2,
+  process.env.GEMINI_API_KEY_3,
 ].filter(Boolean);
 
 const KEY_COUNT = GEMINI_KEYS.length;
@@ -22,6 +23,7 @@ export async function getCurrentKey() {
 }
 
 export async function rotateKey() {
+  console.log("Rotating Gemini Key...");
   const oldIndex = (await redis.get<number>("gemini_key_index")) ?? 0;
   const newIndex = (oldIndex + 1) % KEY_COUNT;
   await redis.set("gemini_key_index", newIndex);

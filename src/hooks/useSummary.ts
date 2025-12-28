@@ -1,24 +1,40 @@
 'use client'
 
-import { useState } from 'react';
-import { SummarySchema } from '@/interfaces/summarySchema';
+import { useEffect, useState } from 'react';
+import { EvaluationQuestion, EvaluationSchema, EvaluationSummary } from '@/interfaces/summarySchema';
 
 export default function useSummary() {
-  const [summary, setSummary] = useState<SummarySchema | undefined>()
+  const [summary, setSummary] = useState<EvaluationSchema | undefined>()
 
-  const storeSummary = (data: SummarySchema) => {
+  const getEvaluationSummary = (): EvaluationSummary | undefined => {
+    return summary?.data.summary;
+  }
+
+  const getEvaluationQuestions = (): EvaluationQuestion[] | undefined => {
+    return summary?.data.evaluationQuestions;
+  }
+
+  const storeSummary = (data: EvaluationSchema) => {
     setSummary(data);
-
-    window.sessionStorage.setItem('summary', JSON.stringify(data));
+    sessionStorage.setItem('summary', JSON.stringify(data));
   };
 
   const clearSummary = (): void => {
     setSummary(undefined);
-    window.sessionStorage.removeItem('summary');
+    sessionStorage.removeItem('summary');
   };
 
+  useEffect(() => {
+    const storedSummary = sessionStorage.getItem('summary');
+    if (storedSummary) {
+      const parsedSummary = JSON.parse(storedSummary) as EvaluationSchema;
+      setSummary(parsedSummary);
+    }
+  }, []);
+
   return {
-    summary,
+    getEvaluationSummary,
+    getEvaluationQuestions,
     storeSummary,
     clearSummary,
   };
