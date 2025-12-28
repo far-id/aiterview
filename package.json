@@ -23,7 +23,6 @@
 		"@radix-ui/react-separator": "^1.1.2",
 		"@radix-ui/react-slot": "^1.2.3",
 		"@radix-ui/react-tooltip": "^1.1.4",
-		"@react-pdf/renderer": "^4.3.0",
 		"@splinetool/react-spline": "^4.1.0",
 		"@splinetool/runtime": "^1.10.71",
 		"@types/dom-speech-recognition": "^0.0.4",

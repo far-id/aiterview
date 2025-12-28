@@ -35,10 +35,12 @@ export default function Summary() {
 			setEvaluationQuestions(JSON.parse(parsedSummary.data.evaluationQuestions));
 			return;
 		} // already fetched
-		if (!sessionStorage.getItem('conversation')) router.push('/start'); // no conversation, redirect to start
-		const conversations = sessionStorage.getItem('conversation');
-		if (!conversations) return;
-		const parsedConversations = JSON.parse(conversations);
+		const sessionConversation = sessionStorage.getItem('conversation');
+		const parsedConversations = JSON.parse(sessionConversation || '[]');
+		if (!parsedConversations || parsedConversations.length === 0) {
+			router.push('/start'); // no conversation, redirect to start
+			return;
+		}
 		const fetchSummary = async () => {
 			try {
 				const response = await fetch('/api/summary', {
