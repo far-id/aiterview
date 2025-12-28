@@ -128,11 +128,11 @@ export default function Page() {
 						const { message, prompt } = data;
 						addConversation({
 							role: 'user',
-							message: prompt,
+							text: prompt,
 						});
 						addConversation({
 							role: 'model',
-							message: message.question,
+							text: message.question,
 							category: message.category,
 							tips: message.tips,
 						});

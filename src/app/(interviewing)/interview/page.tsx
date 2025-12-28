@@ -73,7 +73,7 @@ export default function Page() {
 						'Content-Type': 'application/json',
 					},
 					body: JSON.stringify({
-						conversations: conversations.map((message) => ({
+						conversations: conversations.map((message: Conversation) => ({
 							role: message.role,
 							text: message.text,
 							category: message.category,

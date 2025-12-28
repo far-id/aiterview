@@ -5,11 +5,8 @@ import QuestionEvaluation from '@/components/app/question-evaluation';
 import ThemeToggle from '@/components/app/theme-toggle';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import useSummary from '@/hooks/useSummary';
-import {
-	EvaluationQuestion,
-	EvaluationSchema,
-	EvaluationSummary,
-} from '@/interfaces/summarySchema';
+import { Conversation } from '@/interfaces/conversations';
+import { EvaluationQuestion, EvaluationSummary } from '@/interfaces/summarySchema';
 import { Icon } from '@iconify/react';
 import { RotateCcw, Sparkles } from 'lucide-react';
 import Link from 'next/link';
@@ -21,15 +18,12 @@ export default function Summary() {
 	const [evaluationQuestions, setEvaluationQuestions] = useState<EvaluationQuestion[]>([]);
 	const [summary, setSummary] = useState<EvaluationSummary | null>(null);
 	const isMobile = useIsMobile();
-	const [isExporting, setIsExporting] = useState(false);
 	const { storeSummary } = useSummary();
 	const router = useRouter();
 
 	const download = () => {
-		setIsExporting(true);
 		setTimeout(() => {
 			window.print();
-			setIsExporting(false);
 		}, 800);
 	};
 
@@ -41,7 +35,7 @@ export default function Summary() {
 			setEvaluationQuestions(JSON.parse(parsedSummary.data.evaluationQuestions));
 			return;
 		} // already fetched
-		if(!sessionStorage.getItem('conversation')) router.push('/start'); // no conversation, redirect to start
+		if (!sessionStorage.getItem('conversation')) router.push('/start'); // no conversation, redirect to start
 		const conversations = sessionStorage.getItem('conversation');
 		if (!conversations) return;
 		const parsedConversations = JSON.parse(conversations);
@@ -53,7 +47,7 @@ export default function Summary() {
 						'Content-Type': 'application/json',
 					},
 					body: JSON.stringify({
-						conversations: parsedConversations.map((message) => ({
+						conversations: parsedConversations.map((message: Conversation) => ({
 							role: message.role,
 							text: message.text,
 							category: message.category,
@@ -75,10 +69,6 @@ export default function Summary() {
 
 		fetchSummary();
 	}, []);
-
-	useEffect(() => {
-		// Trigger a re-render when isExporting changes
-	}, [isExporting]);
 
 	return (
 		<div className='min-h-screen bg-background flex-1 '>
@@ -173,7 +163,7 @@ export default function Summary() {
 								key={questionEvaluation.question}
 								questionEvaluation={questionEvaluation}
 								index={index}
-								open={isExporting || isMobile || index === 0}
+								open={isMobile || index === 0}
 							/>
 						))}
 				</div>
