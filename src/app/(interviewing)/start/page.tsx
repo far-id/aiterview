@@ -32,16 +32,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { toast } from 'sonner';
 import { useConversationContext } from '@/context/conversationContext';
-
-const formSchema = z.object({
-	position: z.string().min(3, {
-		message: 'Position must be at least 3 characters long',
-	}),
-	jobDescription: z.string().min(20, {
-		message: 'Job description must be at least 20 characters long',
-	}),
-	language: z.enum(['indonesian', 'english']).default('indonesian'),
-});
+import { initialQuestionSchema } from '@/validator/initialQuestionSchema';
 
 const platforms: { name: string; image: string; url: string; bg?: string }[] = [
 	{
@@ -88,8 +79,8 @@ const platforms: { name: string; image: string; url: string; bg?: string }[] = [
 ];
 
 export default function Page() {
-	const form = useForm<z.infer<typeof formSchema>>({
-		resolver: zodResolver(formSchema),
+	const form = useForm<z.infer<typeof initialQuestionSchema>>({
+		resolver: zodResolver(initialQuestionSchema),
 		defaultValues: {
 			position: '',
 			jobDescription: '',
@@ -100,7 +91,7 @@ export default function Page() {
 	const { clearSummary } = useSummary();
 	const router = useRouter();
 
-	const onSubmit: SubmitHandler<z.infer<typeof formSchema>> = async (data) => {
+	const onSubmit: SubmitHandler<z.infer<typeof initialQuestionSchema>> = async (data) => {
 		const { position, jobDescription, language } = data;
 		const body = JSON.stringify({
 			position,
@@ -116,32 +107,44 @@ export default function Page() {
 				},
 				body,
 			});
+
+			const result = await response.json();
+
 			if (!response.ok) {
-				toast.error('Failed to start interview simulation. Please try again.', {
-					duration: 10000,
-				});
-			} else {
-				response.json().then((data) => {
-					if (data.error) {
-						alert(data.error);
-					} else {
-						const { message, prompt } = data;
-						addConversation({
-							role: 'user',
-							text: prompt,
-						});
-						addConversation({
-							role: 'model',
-							text: message.question,
-							category: message.category,
-							tips: message.tips,
-						});
-					}
-				});
-				router.push('interview');
+				throw new Error(result?.error ?? 'Failed to start interview simulation');
 			}
-		} catch (error) {
-			console.error('Error:', error);
+
+			const { message, prompt } = result;
+
+			if (!message || !prompt) {
+				throw new Error('Invalid response from server');
+			}
+
+			addConversation({
+				role: 'user',
+				text: prompt,
+			});
+
+			const model = typeof message === 'string' ? JSON.parse(message) : message;
+
+			if (!model?.question || !model?.category) {
+				throw new Error('Invalid initial question format');
+			}
+
+			addConversation({
+				role: 'model',
+				text: model.question,
+				category: model.category,
+				tips: model.tips,
+			});
+
+			router.push('interview');
+		} catch (error: any) {
+			console.error('Failed to start interview:', error);
+
+			toast.error(error?.message ?? 'Failed to start interview simulation. Please try again.', {
+				duration: 10000,
+			});
 		}
 	};
 

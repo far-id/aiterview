@@ -3,10 +3,21 @@ import { NextRequest } from 'next/server';
 import { Type } from "@google/genai";
 import { normalizeConversationText } from '@/lib/utils';
 import { sendGemini } from '@/lib/sendGemini';
+import { questionsRequestSchema } from '@/validator/questionsShcema';
+import { validateRequest } from '@/lib/validateRequest';
 
 export async function POST(request: NextRequest) {
-  const { conversations, answer } = await request.json();
-  const history = conversations.map((message: { role: string, text: string, category: string | null }) => ({
+  const validation = await validateRequest(
+    request,
+    questionsRequestSchema
+  );
+
+  if (!validation.success) {
+    return validation.response;
+  }
+
+  const { conversations, answer } = validation.data;
+  const history = conversations.map((message) => ({
     role: message.role,
     parts: [{
       text:
@@ -14,9 +25,10 @@ export async function POST(request: NextRequest) {
           `${normalizeConversationText(message.text)} [Kategori: ${message.category}]` :
           normalizeConversationText(message.text)
     }],
-  }))
+  }));
 
   try {
+    console.log('Sending answer to Gemini ... ');
     const response = await sendGemini("gemini-3-flash-preview", answer, history, {
       type: Type.OBJECT,
       properties: {
@@ -26,7 +38,7 @@ export async function POST(request: NextRequest) {
       },
       propertyOrdering: ["question", "category", "tips"],
     });
-
+    console.log('Received response from Gemini:', response);
 
     return new Response(
       JSON.stringify({

@@ -11,6 +11,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useConversationContext } from '@/context/conversationContext';
 import { Conversation } from '@/interfaces/conversations';
 import { cn, formatSecondsToMMSS } from '@/lib/utils';
+import { aswerSchema } from '@/validator/questionsShcema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ChevronRight, Home, Hourglass, TimerReset } from 'lucide-react';
 import Link from 'next/link';
@@ -20,16 +21,13 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-const aswerSchema = z.object({
-	answer: z.string().min(2, { message: 'We need your answer' }),
-});
-
 export default function Page() {
 	const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(1);
 	const [onRecording, setOnRecording] = useState<boolean>(false);
 	const [timeLeft, setTimeLeft] = useState<number>(120); // in seconds
 	const [progressPercentage, setprogressPercentage] = useState<number>(100);
-	const { conversations, addConversation, lastConversation } = useConversationContext();
+	const { conversations, addConversation, lastConversation, removeLastConversation } =
+		useConversationContext();
 	const [interviewQuestion, setInterviewQuestion] = useState<Conversation>();
 	const [submitting, setSubmitting] = useState<boolean>(false);
 	const router = useRouter();
@@ -66,7 +64,6 @@ export default function Page() {
 		if (currentQuestionIndex < 8) {
 			// go to next question
 			try {
-				console.log('conversations before adding:', conversations);
 				const response = await fetch('/api/questions', {
 					method: 'POST',
 					headers: {
@@ -82,43 +79,41 @@ export default function Page() {
 					}),
 				});
 
+				const result = await response.json();
+
 				if (!response.ok) {
-					throw new Error('Failed to fetch next question');
+					throw new Error(result.error ?? 'Failed to fetch next question');
 				}
 
-				response.json().then((data) => {
-					if (data.error) {
-						toast.error(data.error);
-					} else {
-						const { message } = data;
-						addConversation({
-							role: 'user',
-							text: form.getValues('answer'),
-						});
+				const { message } = result;
 
-						addConversation({
-							role: 'model',
-							text: message.question,
-							category: message.category,
-							tips: message.tips,
-						});
-
-						setInterviewQuestion({
-							role: 'model',
-							text: message.question,
-							category: message.category,
-							tips: message.tips,
-						});
-					}
+				addConversation({
+					role: 'user',
+					text: form.getValues('answer'),
 				});
+
+				addConversation({
+					role: 'model',
+					text: message.question,
+					category: message.category,
+					tips: message.tips,
+				});
+
+				setInterviewQuestion({
+					role: 'model',
+					text: message.question,
+					category: message.category,
+					tips: message.tips,
+				});
+
 				setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
 				setTimeLeft(120);
 				setprogressPercentage(100);
 				form.reset();
-			} catch (error) {
-				// removeLastConversation();
-				console.error('Error:', error);
-				const errorMessage = (error as Error).message;
+			} catch (error: any) {
+				removeLastConversation();
+				const errorMessage = error?.message ?? 'An unexpected error occurred. Please try again.';
+				console.error('Error:', errorMessage);
 				toast.error(errorMessage, {
 					duration: 10000,
 				});

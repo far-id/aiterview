@@ -13,6 +13,8 @@ export default function useConversation() {
 
   const clearConversation = (): void => {
     setConversations([]);
+    setLastConversation(undefined);
+    sessionStorage.removeItem('conversation');
   };
 
   const removeLastConversation = () => {

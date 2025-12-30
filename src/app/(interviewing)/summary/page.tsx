@@ -43,6 +43,7 @@ export default function Summary() {
 		}
 		const fetchSummary = async () => {
 			try {
+				const language = sessionStorage.getItem('language') || 'english';
 				const response = await fetch('/api/summary', {
 					method: 'POST',
 					headers: {
@@ -54,19 +55,42 @@ export default function Summary() {
 							text: message.text,
 							category: message.category,
 						})),
+						language: language,
 					}),
 				});
-				const data = await response.json();
 
-				storeSummary(data);
-				setSummary(JSON.parse(data.data.summary));
-				setEvaluationQuestions(JSON.parse(data.data.evaluationQuestions));
-			} catch (error) {
+				const result = await response.json();
+
+				if (!response.ok) {
+					throw new Error(result?.error ?? 'Failed to fetch interview summary');
+				}
+
+				const { data } = result;
+
+				if (!data?.summary || !data?.evaluationQuestions) {
+					throw new Error('Invalid summary response from server');
+				}
+
+				storeSummary(result);
+
+				const parsedSummary =
+					typeof data.summary === 'string' ? JSON.parse(data.summary) : data.summary;
+
+				const parsedEvaluationQuestions =
+					typeof data.evaluationQuestions === 'string'
+						? JSON.parse(data.evaluationQuestions)
+						: data.evaluationQuestions;
+
+				setSummary(parsedSummary);
+				setEvaluationQuestions(parsedEvaluationQuestions);
+			} catch (error: any) {
 				console.error('Error fetching summary:', error);
-				toast.error('Error fetching summary, please refresh the page.', {
+
+				toast.error(error?.message ?? 'Error fetching summary, please refresh the page.', {
 					duration: 10000,
 				});
 			}
+
 		};
 
 		fetchSummary();

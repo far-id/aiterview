@@ -1,11 +1,20 @@
 'use server';
 import { NextRequest } from 'next/server';
-import { GoogleGenAI, Type } from "@google/genai";
+import { Type } from "@google/genai";
 import { sendGemini } from '@/lib/sendGemini';
+import { initialQuestionSchema } from '@/validator/initialQuestionSchema';
+import { validateRequest } from '@/lib/validateRequest';
 
 export async function POST(request: NextRequest) {
-  const body = await request.json();
-  const { position, jobDescription, language } = body;
+  const validation = await validateRequest(
+    request,
+    initialQuestionSchema
+  );
+
+  if (!validation.success) {
+    return validation.response;
+  }
+  const { position, jobDescription, language } = validation.data;
 
   const prompt = `
     you are an expert interviewer fluent in ${language}, highly experienced, adaptive, and skilled at eliciting deep, structured responses from candidates to evaluating a Software Engineer candidate

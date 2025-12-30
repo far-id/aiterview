@@ -3,10 +3,21 @@ import { NextRequest } from 'next/server';
 import { Type } from "@google/genai";
 import { normalizeConversationText } from '@/lib/utils';
 import { sendGemini } from '@/lib/sendGemini';
+import { summaryRequestSchema } from '@/validator/summarySchema';
+import { validateRequest } from '@/lib/validateRequest';
 
 export async function POST(request: NextRequest) {
-  const { conversations, language } = await request.json();
-  let history = conversations.map((message: { role: string, text: string, category: string | null }) => ({
+  const validation = await validateRequest(
+    request,
+    summaryRequestSchema
+  );
+
+  if (!validation.success) {
+    return validation.response;
+  }
+
+  const { conversations, language } = validation.data;
+  let history = conversations.map((message) => ({
     role: message.role,
     parts: [{
       text:
@@ -179,8 +190,15 @@ Output Format:
     return new Response(
       JSON.stringify({
         data: {
-          evaluationQuestions,
-          summary
+          evaluationQuestions:
+            typeof evaluationQuestions === 'string'
+              ? JSON.parse(evaluationQuestions)
+              : evaluationQuestions,
+
+          summary:
+            typeof summary === 'string'
+              ? JSON.parse(summary)
+              : summary
         }
       }),
       {

@@ -5,7 +5,9 @@ export async function sendGemini(model: string, prompt: string, history: any[], 
   let attempts = 3;
 
   while (attempts > 0) {
+    console.log('getCurrentKey called');
     const apiKey = await getCurrentKey();
+    console.log('getCurrentKey returned');
 
     const ai = new GoogleGenAI({ apiKey });
 
@@ -19,10 +21,12 @@ export async function sendGemini(model: string, prompt: string, history: any[], 
     });
 
     try {
+      console.log("Sending prompt to Gemini...");
       const { text } = await chat.sendMessage({ message: prompt });
+      console.log("Received response from Gemini.");
       return text;
     } catch (err: any) {
-      console.error("🔥 Gemini Error:", err, "endnya disini",);
+      console.error("🔥 Gemini Error:", err, "end is here.",);
 
       if (err.message.includes("429")) {
         console.log("429 Rate Limit, Rotating key...");
