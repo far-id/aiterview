@@ -296,7 +296,7 @@ export default function Home() {
 						<div className='relative'>
 							<Image
 								alt='AI Interview Coach'
-								src='https://wqnmyfkavrotpmupbtou.supabase.co/storage/v1/object/public/reweb/blocks/placeholder.png'
+								src='/summary.webp'
 								className='rounded-lg shadow-2xl'
 								width={600}
 								height={400}
@@ -308,8 +308,8 @@ export default function Home() {
 										<Icon icon='mingcute:ai-fill' className='h-4 w-4 text-primary-foreground' />
 									</div>
 									<div className='text-sm'>
-										<p className='font-semibold text-foreground'>Interview Score: 8.5/10</p>
-										<p className='text-muted-foreground'>Great improvement!</p>
+										<p className='font-semibold text-foreground'>Know Your Weaknesses</p>
+										<p className='text-muted-foreground'>Improve your skills</p>
 									</div>
 								</div>
 							</div>
