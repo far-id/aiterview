@@ -2,7 +2,7 @@ import { z } from "zod";
 import { conversationSchema } from './questionsShcema';
 
 export const summaryRequestSchema = z.object({
-  language: z.enum(["English", "Indonesian"], {
+  language: z.enum(["English", "Indonesian", "english", "indonesian", "en", "id"], {
     errorMap: () => ({
       message: "Language must be either English or Indonesian",
     }),

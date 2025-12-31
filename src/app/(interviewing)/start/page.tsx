@@ -137,6 +137,7 @@ export default function Page() {
 				category: model.category,
 				tips: model.tips,
 			});
+			sessionStorage.setItem('language', language);
 
 			router.push('interview');
 		} catch (error: any) {

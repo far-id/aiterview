@@ -5,6 +5,7 @@ import { normalizeConversationText } from '@/lib/utils';
 import { sendGemini } from '@/lib/sendGemini';
 import { questionsRequestSchema } from '@/validator/questionsShcema';
 import { validateRequest } from '@/lib/validateRequest';
+import { buildConversationHistory } from '@/lib/conversationHistoryBuilder';
 
 export async function POST(request: NextRequest) {
   const validation = await validateRequest(
@@ -17,15 +18,7 @@ export async function POST(request: NextRequest) {
   }
 
   const { conversations, answer } = validation.data;
-  const history = conversations.map((message) => ({
-    role: message.role,
-    parts: [{
-      text:
-        message.category ?
-          `${normalizeConversationText(message.text)} [Kategori: ${message.category}]` :
-          normalizeConversationText(message.text)
-    }],
-  }));
+  const history = buildConversationHistory(conversations);
 
   try {
     console.log('Sending answer to Gemini ... ');

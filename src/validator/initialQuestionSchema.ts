@@ -7,5 +7,9 @@ export const initialQuestionSchema = z.object({
   jobDescription: z.string().min(20, {
     message: 'Job description must be at least 20 characters long',
   }),
-  language: z.enum(['indonesian', 'english']).default('indonesian'),
+  language: z.enum(["English", "Indonesian", "english", "indonesian", "en", "id"], {
+    errorMap: () => ({
+      message: "Language must be either English or Indonesian",
+    }),
+  }),
 });

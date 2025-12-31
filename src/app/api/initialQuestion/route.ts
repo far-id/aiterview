@@ -52,7 +52,11 @@ export async function POST(request: NextRequest) {
     });
 
     return new Response(
-      JSON.stringify({ prompt, message: response }),
+      JSON.stringify({
+        prompt, message: typeof response === 'string'
+          ? JSON.parse(response)
+          : response,
+      }),
       {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
@@ -62,7 +66,6 @@ export async function POST(request: NextRequest) {
     const errorCode = (error as { code?: number }).code;
     console.error(errorCode, 'Error parsing response:', error);
 
-    return new Response(JSON.stringify({ error: `Error Occured on Server (code: ${errorCode})` }), { status: errorCode });
+    return new Response(JSON.stringify({ error: `Error Occured on Server` }), { status: 500 });
   }
-
 }
