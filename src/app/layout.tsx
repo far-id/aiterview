@@ -35,7 +35,7 @@ export default function RootLayout({
 				className={`${inter.variable} ${playfair.variable} ${jetbrains.variable} antialiased w-full`}
 			>
 				<ThemeProvider defaultTheme='dark'>
-					<main className='min-h-screen'>{children}</main>
+					<main className='min-h-screen bg-background'>{children}</main>
 					<Toaster richColors position='top-right' />
 				</ThemeProvider>
 			</body>
