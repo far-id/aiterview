@@ -1,9 +1,6 @@
 'use client';
-import { useState } from 'react';
 import ThemeToggle from './theme-toggle';
-import AiterviewNavLogo from './aiterview-nav-logo';
 import Link from 'next/link';
-import clsx from 'clsx';
 import { usePathname } from 'next/navigation';
 import { Sparkles } from 'lucide-react';
 import { Button } from '../ui/button';
@@ -11,18 +8,6 @@ import { Button } from '../ui/button';
 const Navbar = () => {
 	const pathname = usePathname();
 
-	function linkStyle(currentPath: string | string[]) {
-		function isCurrentPath() {
-			if (Array.isArray(currentPath)) {
-				return currentPath.includes(pathname);
-			}
-			return pathname === currentPath;
-		}
-		return clsx('block py-2 px-3  rounded md:bg-transparent md:p-0', {
-			'text-blue-700 dark:text-blue-500': isCurrentPath(),
-			'text-gray-900 dark:text-white': !isCurrentPath(),
-		});
-	}
 	return (
 		<section className='border-b border-gray-800 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50'>
 			<div className='container px-4 md:mx-auto flex h-16 items-center justify-between'>
