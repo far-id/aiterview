@@ -1,7 +1,6 @@
 'use server';
 import { NextRequest } from 'next/server';
 import { Type } from "@google/genai";
-import { normalizeConversationText } from '@/lib/utils';
 import { sendGemini } from '@/lib/sendGemini';
 import { questionsRequestSchema } from '@/validator/questionsShcema';
 import { validateRequest } from '@/lib/validateRequest';

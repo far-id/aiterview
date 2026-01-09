@@ -181,7 +181,7 @@ export default function Page() {
 									name='jobDescription'
 									render={({ field }) => (
 										<FormItem>
-											<FormLabel>Deskripsi</FormLabel>
+											<FormLabel>Description</FormLabel>
 											<FormControl>
 												<Textarea
 													rows={18}

@@ -162,6 +162,15 @@ export default function Page() {
 		setCurrentQuestionIndex(Math.ceil(conversations.length / 2));
 	}, [conversations, lastConversation]);
 
+	useEffect(() => {
+		const sessionConversation = sessionStorage.getItem('conversation');
+		const parsedConversations = JSON.parse(sessionConversation || '[]');
+		if (!parsedConversations || parsedConversations.length === 0) {
+			router.push('/start'); // no conversation, redirect to start
+		}
+	}, []);
+
+
 	return (
 		<div className='min-h-screen bg-background flex flex-col'>
 			<div className='flex items-center justify-between px-4 py-3 border-b'>
